@@ -4,13 +4,69 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <!-- Bootstrap Style Sheet -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+
+    <!-- Main Project Style Sheet -->
     <link rel="stylesheet" href="./style.css">
 
     <title>Module 2 JavaScript Final Project - Cristiano Miranda</title>
 </head>
 <body>
     
+    <div class="container-fluid position-absolute top-0 start-0 m-0 row justify-content-between main-header">
+        <div class="col-2 row justify-content-center text-center user-selection">
+            <h4 class="col-12">Currently Playing:</h4>
+            <h6 class="col-12">Placeholder</h6>
+            <button class="col-6 mt-1">Change User</button>
+        </div>
+
+        <div class="col-2 row info-section">
+            <h5 class="col-8">Current Cookies:</h5>
+            <h5 class="col-4 text-end current-cookies">####</h5>
+
+            <h5 class="col-8">Total Clicks:</h5>
+            <h5 class="col-4 text-end total-clicks">####</h5>
+
+            <h5 class="col-8">Time Elapsed:</h5>
+            <h5 class="col-4 text-end time-elapsed">####</h5>
+
+            <h5 class="col-8">Highest Score:</h5>
+            <h5 class="col-4 text-end highest-score">####</h5>
+        </div>
+    </div>
+
+    <div class="container-fluid row align-content-center justify-content-center m-0 main-game-body">
+        <div class="col-4 row align-items-center main-cookie-crumb">
+            <h1 class="col-12 text-center ">Main Cookie</h1>
+        </div>
+
+    </div>
+
+    <div class="container-fluid position-absolute bottom-0 start-0 m-0 row justify-content-between power-up-selection">
+        <div class="col-2 row justify-content-evenly power-up-freeze">
+            <h4 class="col-12 text-center">Freeze Time</h4>
+            <h6 class="col-2">Cost:</h6>
+            <h6 class="col-3 text-end">####</h6>
+        </div>
+
+        <div class="col-2 row justify-content-evenly power-up-value">
+            <h4 class="col-12 text-center">Boost Value</h4>
+            <h6 class="col-2">Cost:</h6>
+            <h6 class="col-3 text-end">####</h6>
+        </div>
+
+        <div class="col-2 row justify-content-evenly power-up-click">
+            <h4 class="col-12 text-center">Super Click</h4>
+            <h6 class="col-2">Cost:</h6>
+            <h6 class="col-3 text-end">####</h6>
+        </div>
+    </div>
 </body>
 
+<!-- Bootstrap Javascript File -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+
+<!-- Main Javascript File -->
 <script src="./script.js"></script>
 </html>
