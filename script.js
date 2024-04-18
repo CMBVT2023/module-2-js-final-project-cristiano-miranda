@@ -2,10 +2,29 @@ class Time {
     constructor() {
         this._gameStartTime = Date.now();
         this._powerUpStartTime;
+        this._frozenTime = 0;
     }
 
     elapsedTime() {
-        return Math.floor((Date.now() - this._gameStartTime) / 1000);
+        let totalTime = Math.floor((Date.now() - this._gameStartTime) / 1000) - this._frozenTime;
+        let seconds = totalTime % 60;
+        let minutes = Math.floor(totalTime / 60);
+        let secondsDisplay;
+        let minutesDisplay;
+        
+        if (minutes >= 10) {
+            minutesDisplay = `${minutes}`
+        } else {
+            minutesDisplay = `0${minutes}`;
+        }
+
+        if (seconds >= 10) {
+            secondsDisplay =  `${seconds}`
+        } else {
+            secondsDisplay =  `0${seconds}`;
+        }
+
+        return `${minutesDisplay}:${secondsDisplay}`
     }
 
     powerUpStartTime() {
@@ -14,6 +33,10 @@ class Time {
     
     powerUpElapsedTime() {
         return Math.floor((Date.now() - this._powerUpStartTime) / 1000);
+    }
+
+    freezeTime() {
+        this._frozenTime += 1;
     }
 }
 
@@ -39,6 +62,10 @@ class CookieCrumb {
     increaseClicks() {
         this._totalClicks += 1;
     };
+
+    powerUp(cost) {
+        this._currentCookies -= cost;
+    }
 }
 
 
@@ -51,16 +78,19 @@ class PlayThrough {
       this._powerUpSuperClickActive = false;
       this._cookieCrumb = document.getElementById('cookie-crumb');
       this._timeElapsed = document.getElementById('time-elapsed');
+      this._timeFreeze = false;
+      this._powerUpActive = false;
+      this._powerUpTime = 0;
       
       this._loadDefaultEventListeners();
-      this._updateTime();
+      this._updateTime(this._timeFreeze);
     }
 
     _loadDefaultEventListeners() {
         this._cookieCrumb.addEventListener('click', this._userClick.bind(this));
-        const boostValueBtn = document.getElementById('boost-value').addEventListener('click', this._powerUpBoostValue.bind(this));
-        const superClickBtn = document.getElementById('super-click').addEventListener('click', this._powerUpSuperClickToggle.bind(this, true));
-        const freezeTimeBtn = document.getElementById('freeze-time').addEventListener('click', this._powerUpFreezeTime.bind(this))
+        const boostValueBtn = document.getElementById('boost-value').addEventListener('click', this._powerUpToggle.bind(this, 'boost-value'));
+        const superClickBtn = document.getElementById('super-click').addEventListener('click', this._powerUpToggle.bind(this, 'super-click'));
+        const freezeTimeBtn = document.getElementById('freeze-time').addEventListener('click', this._powerUpToggle.bind(this, 'freeze-time'))
     }
 
     _userClick() {
@@ -70,45 +100,49 @@ class PlayThrough {
         this._updateScoreBoard();
     }
 
-    _powerUpFreezeTime() {
-        console.log(this._timer.elapsedTime());
+    _powerUpToggle(powerUp) {
+        if (this._powerUpActive != true && powerUp === 'boost-value' && this._cookie.currentCookies >= 10) {
+            this._timer.powerUpStartTime()
+            let boostValue = Math.ceil(Math.random() * 2) + 1;
+            this._cookieCrumbValue = boostValue;
+
+            this._cookie.powerUp(10);
+            this._powerUpTime = 15;
+            this._powerUpActive = true;
+        } else if (this._powerUpActive != true && powerUp === 'super-click' && this._cookie.currentCookies >= 10) {
+            this._timer.powerUpStartTime()
+            this._cookieCrumb.addEventListener('mousedown', this._powerUpSuperClickToggle.bind(this, true), {once: true});
+
+            this._cookie.powerUp(10);
+            this._powerUpTime = 20;
+            this._powerUpActive = true;
+        } else if (this._powerUpActive != true && powerUp === 'freeze-time' && this._cookie.currentCookies >= 10) {
+            this._timer.powerUpStartTime()
+            this._timeFreeze = true;
+
+            this._cookie.powerUp(10);
+            this._powerUpTime = 10;
+            this._powerUpActive = true;
+        };
+
+        this._updateScoreBoard();
     }
 
     _powerUpSuperClickToggle(value) {
-        this._powerUpSuperClickActive = value;
-        console.log(this._powerUpSuperClickActive);
-
         if (value) {
-            this._cookieCrumb.addEventListener('mousedown', this._powerUpSuperClickHold.bind(this, true), {once: true});
-            this._cookieCrumb.addEventListener('mouseup', this._powerUpSuperClickHold.bind(this, false), {once: true});
-        }
-
-        this._timer.powerUpStartTime();
-    }
-
-    _powerUpSuperClickHold(value) {
-        this._holdEnabled = value;
-        this._powerUpSuperClick();
-
-        if (this._timer.powerUpElapsedTime() >= 10) {
-            this._powerUpSuperClickToggle(false);
+            this._holdEnabled = true;
+            this._powerUpSuperClick();
+        } else {
+            this._holdEnabled = false;
         }
     }
 
     _powerUpSuperClick() {
         if (this._holdEnabled) {
             this._userClick();
-            if (this._timer.powerUpElapsedTime() <= 10) {
-                console.log(this._timer.powerUpElapsedTime())
-                setTimeout(() => {this._powerUpSuperClick()}, 250)
-            };
+            setTimeout(() => {this._powerUpSuperClick()}, 250)
         };
     };
-
-    _powerUpBoostValue() {
-        let boostValue = Math.ceil(Math.random() * 2) + 1;
-        this._cookieCrumbValue = boostValue;
-    }
 
     _updateScoreBoard() {
         const currentCookiesInfo = document.getElementById('current-cookies');
@@ -120,10 +154,25 @@ class PlayThrough {
 
     _updateTime() {
         setTimeout(() => {
-            this._timeElapsed.innerText = `00:${this._timer.elapsedTime()}`
+            if (this._timeFreeze === false) {
+                this._timeElapsed.innerText = `${this._timer.elapsedTime()}`   
+            } else {
+                this._timer.freezeTime();
+            }
+
+            if (this._powerUpActive && this._timer.powerUpElapsedTime() >= this._powerUpTime) {
+                this._timeFreeze = false;
+                this._cookieCrumbValue = 1;
+                this._powerUpSuperClickToggle(false);
+                this._powerUpActive = false;
+                this._powerUpTime = 0;
+            }
+
             this._updateTime();
         }, 1000)
     }
+
+
 };
 
 const game1 = new PlayThrough();
