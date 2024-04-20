@@ -5,6 +5,10 @@ class Time {
         this._frozenTime = 0;
     }
 
+    totalTime() {
+        return Math.floor((Date.now() - this._gameStartTime) / 1000) - this._frozenTime;
+    }
+
     elapsedTime() {
         let totalTime = Math.floor((Date.now() - this._gameStartTime) / 1000) - this._frozenTime;
         let seconds = totalTime % 60;
@@ -38,13 +42,17 @@ class Time {
     freezeTime() {
         this._frozenTime += 1;
     }
+
+    timerReset() {
+        this._gameStartTime = Date.now();
+        this._frozenTime = 0;
+    }
 }
 
 class CookieCrumb {
     constructor() {
         this._currentCookies = 0;
         this._totalClicks = 0;
-        this._timeElapsed = 0;
     }
 
     get currentCookies() {
@@ -66,6 +74,12 @@ class CookieCrumb {
     powerUp(cost) {
         this._currentCookies -= cost;
     }
+
+    
+    scoreReset() {
+        this._currentCookies = 0
+        this._totalClicks = 0;
+    }
 }
 
 
@@ -78,6 +92,7 @@ class PlayThrough {
       this._powerUpSuperClickActive = false;
       this._cookieCrumb = document.getElementById('cookie-crumb');
       this._timeElapsed = document.getElementById('time-elapsed');
+      this._currentHighScoreDisplay = document.getElementById('highest-score');
       this._timeFreeze = false;
       this._powerUpActive = false;
       this._powerUpTime = 0;
@@ -168,10 +183,30 @@ class PlayThrough {
                 this._powerUpTime = 0;
             }
 
-            this._updateTime();
+            if (this._cookie.currentCookies < 25) {
+                this._updateTime();
+            } else {
+                console.log("You Win.")
+                this._highScoreUpdate();
+                this._gameReset();
+            }
         }, 1000)
     }
 
+    _highScoreUpdate() {
+        const prevTime = this._timer.totalTime();
+
+        if (prevTime < 10) {
+            this._currentHighScoreDisplay.innerText = `${this._timer.elapsedTime()}`
+        }
+    }
+
+    _gameReset() {
+        this._cookie.scoreReset();
+        this._updateScoreBoard();
+        this._timer.timerReset();
+        this._updateTime();
+    }
 
 };
 
