@@ -9,10 +9,30 @@ class Time {
         return Math.floor((Date.now() - this._gameStartTime) / 1000) - this._frozenTime;
     }
 
-    elapsedTime() {
-        let totalTime = Math.floor((Date.now() - this._gameStartTime) / 1000) - this._frozenTime;
-        let seconds = totalTime % 60;
-        let minutes = Math.floor(totalTime / 60);
+    powerUpStartTime() {
+        this._powerUpStartTime = Date.now();
+    }
+
+    powerUpCurrentTime() {
+        return Math.floor((Date.now() - this._powerUpStartTime) / 1000) % 60;
+    }
+    
+    powerUpElapsedTime() {
+        return Math.floor((Date.now() - this._powerUpStartTime) / 1000);
+    }
+
+    freezeTime() {
+        this._frozenTime += 1;
+    }
+
+    timerReset() {
+        this._gameStartTime = Date.now();
+        this._frozenTime = 0;
+    }
+
+    displayTime(time) {
+        let seconds = time % 60;
+        let minutes = Math.floor(time / 60);
         let secondsDisplay;
         let minutesDisplay;
         
@@ -30,22 +50,38 @@ class Time {
 
         return `${minutesDisplay}:${secondsDisplay}`
     }
+}
 
-    powerUpStartTime() {
-        this._powerUpStartTime = Date.now();
-    }
-    
-    powerUpElapsedTime() {
-        return Math.floor((Date.now() - this._powerUpStartTime) / 1000);
-    }
-
-    freezeTime() {
-        this._frozenTime += 1;
+class RealTimeEvent {
+    constructor() {
+        this._loadHTMLElements();
+        this.hideEnemies();
     }
 
-    timerReset() {
-        this._gameStartTime = Date.now();
-        this._frozenTime = 0;
+    _loadHTMLElements() {
+        this._enemyOne = document.getElementById('enemy-one');
+        this._enemyTwo = document.getElementById('enemy-two');
+        this._enemyThree = document.getElementById('enemy-three');
+    }
+
+    hideEnemies() {
+        this._enemyOne.style.visibility = 'hidden';
+        this._enemyTwo.style.visibility = 'hidden';
+        this._enemyThree.style.visibility = 'hidden';
+    }
+
+    randomEnemySelection() {
+        let randomNum = Math.ceil(Math.random() * 3);
+
+        if (randomNum === 1) {
+            this._enemyOne.style.visibility = 'visible';
+        } else if (randomNum === 2) {
+            this._enemyTwo.style.visibility = 'visible';
+        } else {
+            this._enemyThree.style.visibility = 'visible';
+        }
+
+        return randomNum
     }
 }
 
@@ -74,7 +110,6 @@ class CookieCrumb {
     powerUp(cost) {
         this._currentCookies -= cost;
     }
-
     
     scoreReset() {
         this._currentCookies = 0
@@ -82,23 +117,56 @@ class CookieCrumb {
     }
 }
 
+class Storage {
+    static loadHighScore() {
+        let currentHighScore;
+
+        if (localStorage.getItem('highScore') === null) {
+            currentHighScore = 0;
+        } else {
+            currentHighScore = +localStorage.getItem('highScore');
+        }
+
+        return currentHighScore;
+    };
+
+    static setHighScore(currentScore) {
+        let oldScore = this.loadHighScore();
+
+        if (oldScore > currentScore || oldScore === 0) {
+            localStorage.setItem('highScore', currentScore);
+        };
+    };
+}
+
 
 class PlayThrough {
     constructor() {
       this._cookie = new CookieCrumb();
       this._timer = new Time();
+      this._rte = new RealTimeEvent();
+
       this._cookieCrumbValue = 1;
       this._holdEnabled = false;
       this._powerUpSuperClickActive = false;
-      this._cookieCrumb = document.getElementById('cookie-crumb');
-      this._timeElapsed = document.getElementById('time-elapsed');
-      this._currentHighScoreDisplay = document.getElementById('highest-score');
+
       this._timeFreeze = false;
       this._powerUpActive = false;
       this._powerUpTime = 0;
       
+      this._loadHTMLElements();
       this._loadDefaultEventListeners();
+      this._loadHighScoreDisplay();
       this._updateTime(this._timeFreeze);
+    }
+
+    _loadHTMLElements() {
+        this._cookieCrumb = document.getElementById('cookie-crumb');
+        this._timeElapsed = document.getElementById('time-elapsed');
+        this._MainPowerUpDisplay = document.getElementById('powerup-display');
+        this._currentPowerUpDisplay = document.getElementById('current-powerup');
+        this._currentPowerUpTimeDisplay = document.getElementById('powerup-time');
+        this._currentHighScoreDisplay = document.getElementById('highest-score');
     }
 
     _loadDefaultEventListeners() {
@@ -108,11 +176,21 @@ class PlayThrough {
         const freezeTimeBtn = document.getElementById('freeze-time').addEventListener('click', this._powerUpToggle.bind(this, 'freeze-time'))
     }
 
+    _loadHighScoreDisplay() {
+        this._currentHighScoreDisplay.innerText = this._timer.displayTime(Storage.loadHighScore());
+    }
+
     _userClick() {
         this._cookie.increaseClicks();
         this._cookie.increaseCookies(this._cookieCrumbValue);
 
         this._updateScoreBoard();
+    }
+
+    _displayPowerUp(powerUp) {
+        this._currentPowerUpDisplay.innerText = `${powerUp} Currently Active`;
+        this._displayPowerUpTime();
+        this._MainPowerUpDisplay.style.visibility = 'visible';
     }
 
     _powerUpToggle(powerUp) {
@@ -124,13 +202,15 @@ class PlayThrough {
             this._cookie.powerUp(10);
             this._powerUpTime = 15;
             this._powerUpActive = true;
+            this._displayPowerUp('Boost Value');
         } else if (this._powerUpActive != true && powerUp === 'super-click' && this._cookie.currentCookies >= 10) {
             this._timer.powerUpStartTime()
-            this._cookieCrumb.addEventListener('mousedown', this._powerUpSuperClickToggle.bind(this, true), {once: true});
+            this._cookieCrumb.addEventListener('click', this._powerUpSuperClickToggle.bind(this, true), {once: true});
 
             this._cookie.powerUp(10);
             this._powerUpTime = 20;
             this._powerUpActive = true;
+            this._displayPowerUp('Super Click');
         } else if (this._powerUpActive != true && powerUp === 'freeze-time' && this._cookie.currentCookies >= 10) {
             this._timer.powerUpStartTime()
             this._timeFreeze = true;
@@ -138,6 +218,7 @@ class PlayThrough {
             this._cookie.powerUp(10);
             this._powerUpTime = 10;
             this._powerUpActive = true;
+            this._displayPowerUp('Freeze Time');
         };
 
         this._updateScoreBoard();
@@ -170,42 +251,52 @@ class PlayThrough {
     _updateTime() {
         setTimeout(() => {
             if (this._timeFreeze === false) {
-                this._timeElapsed.innerText = `${this._timer.elapsedTime()}`   
+                this._timeElapsed.innerText = `${this._timer.displayTime(this._timer.totalTime())}`   
             } else {
                 this._timer.freezeTime();
             }
 
             if (this._powerUpActive && this._timer.powerUpElapsedTime() >= this._powerUpTime) {
-                this._timeFreeze = false;
-                this._cookieCrumbValue = 1;
-                this._powerUpSuperClickToggle(false);
-                this._powerUpActive = false;
-                this._powerUpTime = 0;
+                this._powerUpReset();
+            } else if (this._powerUpActive) {
+                this._displayPowerUpTime();
             }
-
-            if (this._cookie.currentCookies < 25) {
-                this._updateTime();
+            
+            if (this._cookie.currentCookies > 10) {
+                this._rte.randomEnemySelection();
+                // this._cookieCrumb.style.visibility = 'hidden'
+            } else if (this._cookie.currentCookies > 25) {
+                Storage.setHighScore(this._timer.totalTime());
+                this._gameReset();                
             } else {
-                console.log("You Win.")
-                this._highScoreUpdate();
-                this._gameReset();
+                this._updateTime();
             }
         }, 1000)
     }
 
-    _highScoreUpdate() {
-        const prevTime = this._timer.totalTime();
-
-        if (prevTime < 10) {
-            this._currentHighScoreDisplay.innerText = `${this._timer.elapsedTime()}`
-        }
+    _displayPowerUpTime() {
+        this._currentPowerUpTimeDisplay.innerText = `${this._powerUpTime - this._timer.powerUpCurrentTime()}`
     }
 
     _gameReset() {
         this._cookie.scoreReset();
         this._updateScoreBoard();
         this._timer.timerReset();
+        this._powerUpReset();
         this._updateTime();
+        this._loadHighScoreDisplay();
+    }
+
+    _powerUpReset() {
+        this._timeFreeze = false;
+        this._cookieCrumbValue = 1;
+        this._powerUpSuperClickToggle(false);
+        this._powerUpActive = false;
+        this._powerUpTime = 0;
+
+        this._currentPowerUpDisplay.innerText = ``;
+        this._currentPowerUpTimeDisplay.innerText = ``;
+        this._MainPowerUpDisplay.style.visibility = 'hidden';
     }
 
 };

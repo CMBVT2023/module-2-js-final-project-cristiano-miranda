@@ -21,3 +21,14 @@ body {
     background-color: #aa7733;
     color: #eecc77;
 }
+
+#powerup-display {
+    visibility: hidden;
+}
+
+#enemy-one, #enemy-two, #enemy-three {
+    background-color: #553311;
+    width: 25%;
+    user-select: none;
+    visibility: visible;
+}
