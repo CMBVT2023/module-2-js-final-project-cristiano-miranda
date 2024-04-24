@@ -22,7 +22,7 @@ body {
     color: #eecc77;
 }
 
-#powerup-display {
+#powerup-display, #rte-display {
     visibility: hidden;
 }
 
@@ -30,5 +30,5 @@ body {
     background-color: #553311;
     width: 25%;
     user-select: none;
-    visibility: visible;
+    visibility: hidden;
 }
