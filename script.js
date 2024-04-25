@@ -56,6 +56,9 @@ class RealTimeEvent {
     constructor() {
         this._enemyHealth = 0;
         this._enemyAlive;
+        
+        this._currentCrumb = 0;
+        this._cookieTrailComplete;
 
         this._loadHTMLElements();
         this.hideEnemies();
@@ -65,6 +68,8 @@ class RealTimeEvent {
         this._enemyOne = document.getElementById('enemy-one');
         this._enemyTwo = document.getElementById('enemy-two');
         this._enemyThree = document.getElementById('enemy-three');
+
+        this._cookieTrailList = document.querySelectorAll('.cookie-crumb-trail');
         
         this._rteDisplay = document.getElementById('rte-display');
         this._rteEventDisplay = document.getElementById('current-rte');
@@ -73,7 +78,7 @@ class RealTimeEvent {
 
     _enemyDamage() {
         this._enemyHealth -= 1;
-        if (this._enemyHealth < 0) {
+        if (this._enemyHealth <= 0) {
             this._enemyAlive = false;
             this.displayRTE(false);
             return;
@@ -81,8 +86,42 @@ class RealTimeEvent {
         this._rteRemainingDisplay.innerText = this._enemyHealth;
     }
 
+    _nextCookieCrumb() {
+        this._cookieTrailList[this._currentCrumb].style.visibility = 'hidden';
+
+        this._currentCrumb++;
+
+        if (this._currentCrumb < 10) {
+            const crumbEvent = this._cookieTrailList[this._currentCrumb].addEventListener('click', this._nextCookieCrumb.bind(this), {once: true})
+            this.displayRTE(true, 2);
+        } else if (this._currentCrumb === 10) {
+            this.displayRTE(false);
+            this._currentCrumb = 0;
+            this._cookieTrailComplete = true;
+        }
+    }
+
     get enemyAlive() {
         return this._enemyAlive;
+    }
+
+    get cookieTrailComplete() {
+        return this._cookieTrailComplete;
+    }
+
+    loadCookieTrail() {
+        this._cookieTrailComplete = false;
+
+        for (let i = 0; i < 10; i++) {
+            let item = this._cookieTrailList[i]
+            let height = Math.ceil(Math.random() * 50) + 25;
+
+            item.style.top = `${height}%`;
+            item.style.visibility = 'visible';
+        }
+
+        const crumbEvent = this._cookieTrailList[0].addEventListener('click', this._nextCookieCrumb.bind(this), {once: true})
+        this.displayRTE(true, 2);
     }
 
     randomEnemySelection() {
@@ -101,14 +140,18 @@ class RealTimeEvent {
             this._enemyThree.style.visibility = 'visible';
             this._enemyThree.addEventListener('click', this._enemyDamage.bind(this))
         }
-        this.displayRTE(true);
+        this.displayRTE(true, 1);
     }
 
     displayRTE(value, currentEvent) {
-        if (value) {
+        if (value && currentEvent === 1) {
             this._rteDisplay.style.visibility = 'visible';
             this._rteEventDisplay.innerText = 'Enemy Health Remaining:'
             this._rteRemainingDisplay.innerText = this._enemyHealth;
+        } else if (value && currentEvent === 2) {
+            this._rteDisplay.style.visibility = 'visible';
+            this._rteEventDisplay.innerText = 'Cookie Crumbs Remaining:'
+            this._rteRemainingDisplay.innerText = 10 - this._currentCrumb;
         } else {
             this._rteDisplay.style.visibility = 'hidden';
             this._rteEventDisplay.innerText = ``;
@@ -144,6 +187,10 @@ class CookieCrumb {
     increaseClicks() {
         this._totalClicks += 1;
     };
+
+    randomIncrease() {
+        this._currentCookies += Math.ceil(Math.random() * 25) + 25;
+    }
 
     powerUp(cost) {
         this._currentCookies -= cost;
@@ -193,10 +240,11 @@ class PlayThrough {
       this._powerUpTime = 0;
       
     //   For testing purposes, setting this to between 1-10, upon finishing set it to 51-100
-      this._randomEventClicks = Math.ceil(Math.random() * 10);
+      this._randomEventClicks = 10;
     //   this._randomEventClicks = Math.ceil(Math.random() * 50) + 50;
-      this._eventActive = false;
-      
+      this._eventActiveEnemy = false;
+      this._eventActiveTrail = false;
+
       this._loadHTMLElements();
       this._loadDefaultEventListeners();
       this._loadHighScoreDisplay();
@@ -210,13 +258,16 @@ class PlayThrough {
         this._currentPowerUpDisplay = document.getElementById('current-powerup');
         this._currentPowerUpTimeDisplay = document.getElementById('powerup-time');
         this._currentHighScoreDisplay = document.getElementById('highest-score');
+        this._boostValueBtn = document.getElementById('boost-value');
+        this._superClickBtn = document.getElementById('super-click');
+        this._freezeTimeBtn = document.getElementById('freeze-time');
     }
 
     _loadDefaultEventListeners() {
         this._cookieCrumb.addEventListener('click', this._userClick.bind(this));
-        const boostValueBtn = document.getElementById('boost-value').addEventListener('click', this._powerUpToggle.bind(this, 'boost-value'));
-        const superClickBtn = document.getElementById('super-click').addEventListener('click', this._powerUpToggle.bind(this, 'super-click'));
-        const freezeTimeBtn = document.getElementById('freeze-time').addEventListener('click', this._powerUpToggle.bind(this, 'freeze-time'))
+        this._boostValueBtn.addEventListener('click', this._powerUpToggle.bind(this, 'boost-value'));
+        this._superClickBtn.addEventListener('click', this._powerUpToggle.bind(this, 'super-click'));
+        this._freezeTimeBtn.addEventListener('click', this._powerUpToggle.bind(this, 'freeze-time'))
     }
 
     _loadHighScoreDisplay() {
@@ -236,11 +287,21 @@ class PlayThrough {
         this._MainPowerUpDisplay.style.visibility = 'visible';
     }
 
-    _enemyEvent() {
+    _activateEvent() {
+        let num = Math.ceil(Math.random() * 2);
+
+        console.log(num);
+
         this._powerUpReset();
         this._cookieCrumb.style.visibility = 'hidden';
-        this._rte.randomEnemySelection();
-        this._eventActive = true;
+
+        if (num === 1) {
+            this._rte.randomEnemySelection();
+            this._eventActiveEnemy = true;
+        } else if (num === 2) {
+            this._rte.loadCookieTrail();
+            this._eventActiveTrail = true;
+        }
     }
 
     _updateScoreBoard() {
@@ -253,8 +314,8 @@ class PlayThrough {
         if (this._cookie.currentCookies > 50) {
             Storage.setHighScore(this._timer.totalTime());
             this._gameReset(); 
-        } else if (this._cookie.totalClicks === this._randomEventClicks) {
-            this._enemyEvent();
+        } else if (this._cookie.totalClicks === this._randomEventClicks && this._eventActiveTrail === false && this._eventActiveEnemy === false) {
+            this._activateEvent();
         }
     }
 
@@ -269,6 +330,7 @@ class PlayThrough {
                 this._powerUpTime = 15;
                 this._powerUpActive = true;
                 this._displayPowerUp('Boost Value');
+                this._updateScoreBoard();
             } else if (powerUp === 'super-click' && this._cookie.currentCookies >= 10) {
                 this._timer.powerUpStartTime()
                 this._cookieCrumb.addEventListener('click', this._powerUpSuperClickToggle.bind(this, true), {once: true});
@@ -277,6 +339,7 @@ class PlayThrough {
                 this._powerUpTime = 20;
                 this._powerUpActive = true;
                 this._displayPowerUp('Super Click');
+                this._updateScoreBoard();
             } else if (powerUp === 'freeze-time' && this._cookie.currentCookies >= 10) {
                 this._timer.powerUpStartTime()
                 this._timeFreeze = true;
@@ -285,10 +348,9 @@ class PlayThrough {
                 this._powerUpTime = 10;
                 this._powerUpActive = true;
                 this._displayPowerUp('Freeze Time');
+                this._updateScoreBoard();
             };
         }
-
-        this._updateScoreBoard();
     }
 
     _powerUpSuperClickToggle(value) {
@@ -321,11 +383,17 @@ class PlayThrough {
                 this._displayPowerUpTime();
             }
 
-            if (this._eventActive && this._rte.enemyAlive === false) {
+            if (this._eventActiveEnemy && this._rte.enemyAlive === false) {
                 this._cookieCrumb.style.visibility = 'visible';
                 this._rte.hideEnemies();
-                this._eventActive = false;
+                this._eventActiveEnemy = false;
             }
+            if (this._eventActiveTrail && this._rte.cookieTrailComplete) {
+                this._cookie.randomIncrease();
+                this._updateScoreBoard();
+                this._cookieCrumb.style.visibility = 'visible';
+                this._eventActiveTrail = false;
+            } 
 
             this._updateTime();
         }, 1000)
