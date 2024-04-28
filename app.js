@@ -321,7 +321,7 @@ class PlayThrough {
         if (this._cookie.currentCookies > 100) {
             Storage.setHighScore(this._timer.totalTime());
             this._gameReset(); 
-        } else if (this._cookie.totalClicks === this._randomEventClicks && this._eventActiveTrail === false && this._eventActiveEnemy === false) {
+        } else if (this._powerUpActive === false && this._cookie.totalClicks === this._randomEventClicks && this._eventActiveTrail === false && this._eventActiveEnemy === false) {
             this._activateEvent();
         }
     }
