@@ -26,9 +26,17 @@ body {
     visibility: hidden;
 }
 
-#enemy-one, #enemy-two, #enemy-three {
+.enemy-rte {
     background-color: #553311;
-    width: 25%;
+    width: 20%;
     user-select: none;
-    visibility: hidden;
+    position: absolute;
+    text-align: center;
+}
+
+.cookie-crumb-trail {
+    color: #eecc77;
+    background-color: #553311;
+    position: absolute;
+    user-select: none;
 }

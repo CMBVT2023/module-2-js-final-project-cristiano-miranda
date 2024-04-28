@@ -61,15 +61,11 @@ class RealTimeEvent {
         this._cookieTrailComplete;
 
         this._loadHTMLElements();
-        this.hideEnemies();
+        
     }
 
     _loadHTMLElements() {
-        this._enemyOne = document.getElementById('enemy-one');
-        this._enemyTwo = document.getElementById('enemy-two');
-        this._enemyThree = document.getElementById('enemy-three');
-
-        this._cookieTrailList = document.querySelectorAll('.cookie-crumb-trail');
+        this._rteContainer = document.getElementById('rte-spawn');
         
         this._rteDisplay = document.getElementById('rte-display');
         this._rteEventDisplay = document.getElementById('current-rte');
@@ -79,8 +75,7 @@ class RealTimeEvent {
     _enemyDamage() {
         this._enemyHealth -= 1;
         if (this._enemyHealth <= 0) {
-            this._enemyAlive = false;
-            this.displayRTE(false);
+            this.clearRTE();
             return;
         }
         this._rteRemainingDisplay.innerText = this._enemyHealth;
@@ -95,9 +90,7 @@ class RealTimeEvent {
             const crumbEvent = this._cookieTrailList[this._currentCrumb].addEventListener('click', this._nextCookieCrumb.bind(this), {once: true})
             this.displayRTE(true, 2);
         } else if (this._currentCrumb === 10) {
-            this.displayRTE(false);
-            this._currentCrumb = 0;
-            this._cookieTrailComplete = true;
+            this.clearRTE();
         }
     }
 
@@ -109,38 +102,54 @@ class RealTimeEvent {
         return this._cookieTrailComplete;
     }
 
-    loadCookieTrail() {
-        this._cookieTrailComplete = false;
-
+    summonCookieTrail() {
+        this._cookieTrailElement = document.createElement('div')
         for (let i = 0; i < 10; i++) {
-            let item = this._cookieTrailList[i]
-            let height = Math.ceil(Math.random() * 50) + 25;
-
-            item.style.top = `${height}%`;
-            item.style.visibility = 'visible';
+            this._cookieTrailElement.innerHTML += `<h1 class="cookie-crumb-trail" id="crumb-${i}">Crumb</h1>`
         }
+        this._rteContainer.appendChild(this._cookieTrailElement);
+
+        this._cookieTrailList = document.querySelectorAll('.cookie-crumb-trail')
+        let leftNum = 2;
+        for (let i = 0; i < 10; i++) {
+            let randomTop = Math.ceil(Math.random() * 55) + 20
+            this._cookieTrailList[i].style.top = `${randomTop}%`;
+            this._cookieTrailList[i].style.left = `${leftNum}%`
+            leftNum += 10;
+        }
+
+        this._cookieTrailComplete = false;
 
         const crumbEvent = this._cookieTrailList[0].addEventListener('click', this._nextCookieCrumb.bind(this), {once: true})
         this.displayRTE(true, 2);
     }
 
-    randomEnemySelection() {
-        let randomNum = Math.ceil(Math.random() * 3);
+    summonEnemy() {
+        this._enemyElement = document.createElement('div')
+        this._enemyElement.innerHTML = `<h1 id="enemy-entity">Enemy Entity Test</h1>`
+        this._enemyElement.classList.add('enemy-rte')
+        this._rteContainer.appendChild(this._enemyElement)
+
+        let randomTop = Math.ceil(Math.random() * 55) + 20;
+        this._enemyElement.style.top = `${randomTop}%`;
+
+        let randomLeft = Math.ceil(Math.random() * 70) + 5;
+        this._enemyElement.style.left = `${randomLeft}%`;
+
+        this._enemyElement.addEventListener('click', this._enemyDamage.bind(this))
+
         this._enemyHealth = Math.ceil(Math.random() * 25) + 10;
         this._enemyAlive = true;
 
-        if (randomNum === 1) {
-            this._enemyOne.style.visibility = 'visible';
-            this._enemyOne.addEventListener('click', this._enemyDamage.bind(this))
-        } else if (randomNum === 2) {
-            this._enemyTwo.style.visibility = 'visible';
-            this._enemyTwo.addEventListener('click', this._enemyDamage.bind(this))
-            
-        } else {
-            this._enemyThree.style.visibility = 'visible';
-            this._enemyThree.addEventListener('click', this._enemyDamage.bind(this))
-        }
         this.displayRTE(true, 1);
+    }
+
+    clearRTE() {
+        this._rteContainer.innerHTML = ``;
+        this._currentCrumb = 0;
+        this._enemyAlive = false;
+        this._cookieTrailComplete = true;
+        this.displayRTE(false);
     }
 
     displayRTE(value, currentEvent) {
@@ -157,12 +166,6 @@ class RealTimeEvent {
             this._rteEventDisplay.innerText = ``;
             this._rteRemainingDisplay.innerText = ``;
         }
-    }
-
-    hideEnemies() {
-        this._enemyOne.style.visibility = 'hidden';
-        this._enemyTwo.style.visibility = 'hidden';
-        this._enemyThree.style.visibility = 'hidden';
     }
 }
 
@@ -189,7 +192,7 @@ class CookieCrumb {
     };
 
     randomIncrease() {
-        this._currentCookies += Math.ceil(Math.random() * 25) + 25;
+        this._currentCookies += Math.ceil(Math.random() * 25);
     }
 
     powerUp(cost) {
@@ -261,6 +264,7 @@ class PlayThrough {
         this._boostValueBtn = document.getElementById('boost-value');
         this._superClickBtn = document.getElementById('super-click');
         this._freezeTimeBtn = document.getElementById('freeze-time');
+        this._resetBtn = document.getElementById('reset');
     }
 
     _loadDefaultEventListeners() {
@@ -268,6 +272,8 @@ class PlayThrough {
         this._boostValueBtn.addEventListener('click', this._powerUpToggle.bind(this, 'boost-value'));
         this._superClickBtn.addEventListener('click', this._powerUpToggle.bind(this, 'super-click'));
         this._freezeTimeBtn.addEventListener('click', this._powerUpToggle.bind(this, 'freeze-time'))
+
+        this._resetBtn.addEventListener('click', this._gameReset.bind(this));
     }
 
     _loadHighScoreDisplay() {
@@ -296,12 +302,13 @@ class PlayThrough {
         this._cookieCrumb.style.visibility = 'hidden';
 
         if (num === 1) {
-            this._rte.randomEnemySelection();
+            this._rte.summonEnemy();
             this._eventActiveEnemy = true;
         } else if (num === 2) {
-            this._rte.loadCookieTrail();
+            this._rte.summonCookieTrail();
             this._eventActiveTrail = true;
         }
+        this._eventCheck();
     }
 
     _updateScoreBoard() {
@@ -311,7 +318,7 @@ class PlayThrough {
         const totalClicksInfo = document.getElementById('total-clicks');
         totalClicksInfo.textContent = this._cookie.totalClicks;
 
-        if (this._cookie.currentCookies > 50) {
+        if (this._cookie.currentCookies > 100) {
             Storage.setHighScore(this._timer.totalTime());
             this._gameReset(); 
         } else if (this._cookie.totalClicks === this._randomEventClicks && this._eventActiveTrail === false && this._eventActiveEnemy === false) {
@@ -320,7 +327,7 @@ class PlayThrough {
     }
 
     _powerUpToggle(powerUp) {
-        if (this._powerUpActive != true && this._eventActive != true) {
+        if ((this._powerUpActive != true && this._eventActiveEnemy != true) && (this._powerUpActive != true && this._eventActiveTrail != true)) {
             if (powerUp === 'boost-value' && this._cookie.currentCookies >= 10) {
                 this._timer.powerUpStartTime()
                 let boostValue = Math.ceil(Math.random() * 2) + 1;
@@ -369,6 +376,21 @@ class PlayThrough {
         };
     };
 
+    _eventCheck() {
+        setTimeout(() => {
+            if ((this._eventActiveEnemy && this._rte.enemyAlive === false) || (this._eventActiveTrail && this._rte.cookieTrailComplete)) {
+                this._cookieCrumb.style.visibility = 'visible';
+                this._cookie.randomIncrease();
+                this._updateScoreBoard();
+                this._rte.clearRTE();
+                this._eventActiveEnemy = false;
+                this._eventActiveTrail = false;
+                return;
+            }
+            this._eventCheck();
+        }, 250)
+    }
+
     _updateTime() {
         setTimeout(() => {
             if (this._timeFreeze === false) {
@@ -383,17 +405,7 @@ class PlayThrough {
                 this._displayPowerUpTime();
             }
 
-            if (this._eventActiveEnemy && this._rte.enemyAlive === false) {
-                this._cookieCrumb.style.visibility = 'visible';
-                this._rte.hideEnemies();
-                this._eventActiveEnemy = false;
-            }
-            if (this._eventActiveTrail && this._rte.cookieTrailComplete) {
-                this._cookie.randomIncrease();
-                this._updateScoreBoard();
-                this._cookieCrumb.style.visibility = 'visible';
-                this._eventActiveTrail = false;
-            } 
+            
 
             this._updateTime();
         }, 1000)
@@ -404,12 +416,18 @@ class PlayThrough {
     }
 
     _gameReset() {
+        this._eventActiveEnemy = false;
+        this._eventActiveTrail = false;
+
         this._cookie.scoreReset();
-        this._updateScoreBoard();
+        this._rte.clearRTE();
         this._timer.timerReset();
+
+        this._updateScoreBoard();
         this._powerUpReset();
         this._updateTime();
         this._loadHighScoreDisplay();
+        this._cookieCrumb.style.visibility = 'visible';
     }
 
     _powerUpReset() {
