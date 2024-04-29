@@ -248,10 +248,12 @@ class PlayThrough {
       this._eventActiveEnemy = false;
       this._eventActiveTrail = false;
 
+      this._gameOver = false;
+
       this._loadHTMLElements();
       this._loadDefaultEventListeners();
       this._loadHighScoreDisplay();
-      this._updateTime(this._timeFreeze);
+      this._updateTime();
     }
 
     _loadHTMLElements() {
@@ -296,8 +298,6 @@ class PlayThrough {
     _activateEvent() {
         let num = Math.ceil(Math.random() * 2);
 
-        console.log(num);
-
         this._powerUpReset();
         this._cookieCrumb.style.visibility = 'hidden';
 
@@ -320,8 +320,8 @@ class PlayThrough {
 
         if (this._cookie.currentCookies > 100) {
             Storage.setHighScore(this._timer.totalTime());
-            this._gameReset(); 
-        } else if (this._powerUpActive === false && this._cookie.totalClicks === this._randomEventClicks && this._eventActiveTrail === false && this._eventActiveEnemy === false) {
+            this._gameOver = true;
+        } else if (this._powerUpActive != true && this._cookie.totalClicks === this._randomEventClicks && this._eventActiveTrail === false && this._eventActiveEnemy === false) {
             this._activateEvent();
         }
     }
@@ -371,7 +371,8 @@ class PlayThrough {
 
     _powerUpSuperClick() {
         if (this._holdEnabled) {
-            this._userClick();
+            this._cookie.increaseCookies(this._cookieCrumbValue);
+            this._updateScoreBoard();
             setTimeout(() => {this._powerUpSuperClick()}, 250)
         };
     };
@@ -393,10 +394,9 @@ class PlayThrough {
 
     _updateTime() {
         setTimeout(() => {
-            if (this._timeFreeze === false) {
-                this._timeElapsed.innerText = `${this._timer.displayTime(this._timer.totalTime())}`   
-            } else {
-                this._timer.freezeTime();
+            if (this._gameOver) {
+                this._gameReset();
+                return;
             }
 
             if (this._powerUpActive && this._timer.powerUpElapsedTime() >= this._powerUpTime) {
@@ -405,7 +405,12 @@ class PlayThrough {
                 this._displayPowerUpTime();
             }
 
-            
+            if (this._timeFreeze === false) {
+                this._timeElapsed.innerText = `${this._timer.displayTime(this._timer.totalTime())}`   
+            } else {
+                this._timer.freezeTime();
+                console.log(this._timer._frozenTime)
+            }
 
             this._updateTime();
         }, 1000)
@@ -424,10 +429,11 @@ class PlayThrough {
         this._timer.timerReset();
 
         this._updateScoreBoard();
-        this._powerUpReset();
-        this._updateTime();
+        this._timeElapsed.innerText = `00:00`;
         this._loadHighScoreDisplay();
+        this._powerUpReset();
         this._cookieCrumb.style.visibility = 'visible';
+        this._gameOver = false;
     }
 
     _powerUpReset() {
