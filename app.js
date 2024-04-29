@@ -57,8 +57,12 @@ class RealTimeEvent {
         this._enemyHealth = 0;
         this._enemyAlive;
         
-        this._currentCrumb = 0;
+        this._currentTrailCrumb = 0;
         this._cookieTrailComplete;
+
+        this._cookieHuntNum = 0;
+        this._currentHuntCrumb = 0;
+        this._cookieHuntActive;
 
         this._loadHTMLElements();
         
@@ -81,15 +85,29 @@ class RealTimeEvent {
         this._rteRemainingDisplay.innerText = this._enemyHealth;
     }
 
-    _nextCookieCrumb() {
-        this._cookieTrailList[this._currentCrumb].style.visibility = 'hidden';
+    _nextCookieTrailCrumb() {
+        this._cookieTrailList[this._currentTrailCrumb].style.visibility = 'hidden';
 
-        this._currentCrumb++;
+        this._currentTrailCrumb++;
 
-        if (this._currentCrumb < 10) {
-            const crumbEvent = this._cookieTrailList[this._currentCrumb].addEventListener('click', this._nextCookieCrumb.bind(this), {once: true})
+        if (this._currentTrailCrumb < 10) {
+            const crumbEvent = this._cookieTrailList[this._currentTrailCrumb].addEventListener('click', this._nextCookieTrailCrumb.bind(this), {once: true})
             this.displayRTE(true, 2);
-        } else if (this._currentCrumb === 10) {
+        } else if (this._currentTrailCrumb === 10) {
+            this.clearRTE();
+        }
+    }
+
+    _nextCookieHuntCrumb() {
+        this._cookieHuntList[this._currentHuntCrumb].style.visibility = 'hidden';
+
+        this._currentHuntCrumb++;
+
+        if (this._currentHuntCrumb < this._cookieHuntNum) {
+            const crumbEvent = this._cookieHuntList[this._currentHuntCrumb].addEventListener('click', this._nextCookieHuntCrumb.bind(this), {once: true})
+            this._cookieHuntList[this._currentHuntCrumb].style.visibility = 'visible';
+            this.displayRTE(true, 3);
+        } else if (this._currentHuntCrumb === this._cookieHuntNum) {
             this.clearRTE();
         }
     }
@@ -102,10 +120,41 @@ class RealTimeEvent {
         return this._cookieTrailComplete;
     }
 
+    get cookieHuntComplete() {
+        return this._cookieHuntActive;
+    }
+
+    summonCookieHunt() {
+        this._cookieHuntElement = document.createElement('div');
+        this._cookieHuntNum = Math.ceil(Math.random() * 5) + 5;
+        for (let i = 0; i < this._cookieHuntNum; i++) {
+            this._cookieHuntElement.innerHTML += `<h1 class="cookie-crumb-hunt">Crumb #${i + 1}</h1>`
+        }
+        this._rteContainer.appendChild(this._cookieHuntElement);
+
+        this._cookieHuntList = document.querySelectorAll('.cookie-crumb-hunt');
+        
+        for (let i = 0; i < this._cookieHuntNum; i++) {
+            let randomTop = Math.ceil(Math.random() * 55) + 20;
+            let randomLeft = Math.ceil(Math.random() * 70) + 5;
+
+            this._cookieHuntList[i].style.top = `${randomTop}%`
+            this._cookieHuntList[i].style.left = `${randomLeft}%`
+        }
+
+        this._cookieHuntActive = true;
+
+        const crumbEvent = this._cookieHuntList[0].addEventListener('click', this._nextCookieHuntCrumb.bind(this), {once: true})
+        this._cookieHuntList[0].style.visibility = 'visible';
+        this.displayRTE(true, 3);
+    }
+
     summonCookieTrail() {
         this._cookieTrailElement = document.createElement('div')
         for (let i = 0; i < 10; i++) {
-            this._cookieTrailElement.innerHTML += `<h1 class="cookie-crumb-trail" id="crumb-${i}">Crumb</h1>`
+            // Check that this id is unnecessary 
+            // this._cookieTrailElement.innerHTML += `<h1 class="cookie-crumb-trail" id="crumb-${i}">Crumb</h1>`
+            this._cookieTrailElement.innerHTML += `<h1 class="cookie-crumb-trail">Crumb</h1>`
         }
         this._rteContainer.appendChild(this._cookieTrailElement);
 
@@ -120,7 +169,7 @@ class RealTimeEvent {
 
         this._cookieTrailComplete = false;
 
-        const crumbEvent = this._cookieTrailList[0].addEventListener('click', this._nextCookieCrumb.bind(this), {once: true})
+        const crumbEvent = this._cookieTrailList[0].addEventListener('click', this._nextCookieTrailCrumb.bind(this), {once: true});
         this.displayRTE(true, 2);
     }
 
@@ -146,9 +195,16 @@ class RealTimeEvent {
 
     clearRTE() {
         this._rteContainer.innerHTML = ``;
-        this._currentCrumb = 0;
-        this._enemyAlive = false;
+        this._currentTrailCrumb = 0;
         this._cookieTrailComplete = true;
+
+        this._enemyAlive = false;
+        this._enemyHealth = 0;
+
+        this._cookieHuntNum = 0;
+        this._currentHuntCrumb = 0;
+        this._cookieHuntActive = false;
+
         this.displayRTE(false);
     }
 
@@ -159,8 +215,12 @@ class RealTimeEvent {
             this._rteRemainingDisplay.innerText = this._enemyHealth;
         } else if (value && currentEvent === 2) {
             this._rteDisplay.style.visibility = 'visible';
-            this._rteEventDisplay.innerText = 'Cookie Crumbs Remaining:'
-            this._rteRemainingDisplay.innerText = 10 - this._currentCrumb;
+            this._rteEventDisplay.innerText = 'Cookie Trail Crumbs Remaining:'
+            this._rteRemainingDisplay.innerText = 10 - this._currentTrailCrumb;
+        } else if (value && currentEvent === 3) {
+            this._rteDisplay.style.visibility = 'visible';
+            this._rteEventDisplay.innerText = 'Cookie Hunt Crumbs Remaining:'
+            this._rteRemainingDisplay.innerText = this._cookieHuntNum - this._currentHuntCrumb;
         } else {
             this._rteDisplay.style.visibility = 'hidden';
             this._rteEventDisplay.innerText = ``;
@@ -247,6 +307,7 @@ class PlayThrough {
     //   this._randomEventClicks = Math.ceil(Math.random() * 50) + 50;
       this._eventActiveEnemy = false;
       this._eventActiveTrail = false;
+      this._eventActiveHunt = false;
 
       this._gameOver = false;
 
@@ -275,7 +336,7 @@ class PlayThrough {
         this._superClickBtn.addEventListener('click', this._powerUpToggle.bind(this, 'super-click'));
         this._freezeTimeBtn.addEventListener('click', this._powerUpToggle.bind(this, 'freeze-time'))
 
-        this._resetBtn.addEventListener('click', this._gameReset.bind(this));
+        this._resetBtn.addEventListener('click', () => {this._gameOver = true;});
     }
 
     _loadHighScoreDisplay() {
@@ -295,8 +356,12 @@ class PlayThrough {
         this._MainPowerUpDisplay.style.visibility = 'visible';
     }
 
+    _eventActive() {
+        return (this._eventActiveEnemy || this._eventActiveHunt || this._eventActiveTrail);
+    }
+
     _activateEvent() {
-        let num = Math.ceil(Math.random() * 2);
+        let num = Math.ceil(Math.random() * 3);
 
         this._powerUpReset();
         this._cookieCrumb.style.visibility = 'hidden';
@@ -307,6 +372,9 @@ class PlayThrough {
         } else if (num === 2) {
             this._rte.summonCookieTrail();
             this._eventActiveTrail = true;
+        } else if (num === 3) {
+            this._rte.summonCookieHunt();
+            this._eventActiveHunt = true;
         }
         this._eventCheck();
     }
@@ -321,13 +389,13 @@ class PlayThrough {
         if (this._cookie.currentCookies > 100) {
             Storage.setHighScore(this._timer.totalTime());
             this._gameOver = true;
-        } else if (this._powerUpActive != true && this._cookie.totalClicks === this._randomEventClicks && this._eventActiveTrail === false && this._eventActiveEnemy === false) {
+        } else if (this._powerUpActive != true && this._cookie.totalClicks === this._randomEventClicks && this._eventActive() != true) {
             this._activateEvent();
         }
     }
 
     _powerUpToggle(powerUp) {
-        if ((this._powerUpActive != true && this._eventActiveEnemy != true) && (this._powerUpActive != true && this._eventActiveTrail != true)) {
+        if ((this._powerUpActive != true && this._eventActive() != true)) {
             if (powerUp === 'boost-value' && this._cookie.currentCookies >= 10) {
                 this._timer.powerUpStartTime()
                 let boostValue = Math.ceil(Math.random() * 2) + 1;
@@ -379,13 +447,14 @@ class PlayThrough {
 
     _eventCheck() {
         setTimeout(() => {
-            if ((this._eventActiveEnemy && this._rte.enemyAlive === false) || (this._eventActiveTrail && this._rte.cookieTrailComplete)) {
+            if ((this._eventActiveEnemy && this._rte.enemyAlive === false) || (this._eventActiveTrail && this._rte.cookieTrailComplete) || (this._eventActiveHunt && this._rte._cookieHuntActive === false)) {
                 this._cookieCrumb.style.visibility = 'visible';
                 this._cookie.randomIncrease();
                 this._updateScoreBoard();
                 this._rte.clearRTE();
                 this._eventActiveEnemy = false;
                 this._eventActiveTrail = false;
+                this._eventActiveHunt = false;
                 return;
             }
             this._eventCheck();
@@ -406,14 +475,15 @@ class PlayThrough {
             }
 
             if (this._timeFreeze === false) {
-                this._timeElapsed.innerText = `${this._timer.displayTime(this._timer.totalTime())}`   
+                this._timeElapsed.innerText = `${this._timer.displayTime(this._timer.totalTime())}`
+                console.log('test')
             } else {
                 this._timer.freezeTime();
                 console.log(this._timer._frozenTime)
             }
-
+            
             this._updateTime();
-        }, 1000)
+            }, 1000)
     }
 
     _displayPowerUpTime() {
@@ -421,19 +491,22 @@ class PlayThrough {
     }
 
     _gameReset() {
+        this._gameOver = false;
+
+        this._powerUpReset();
+        this._rte.clearRTE();
+        this._cookieCrumb.style.visibility = 'visible';
         this._eventActiveEnemy = false;
         this._eventActiveTrail = false;
+        this._eventActiveHunt = false;
 
         this._cookie.scoreReset();
-        this._rte.clearRTE();
-        this._timer.timerReset();
-
         this._updateScoreBoard();
-        this._timeElapsed.innerText = `00:00`;
         this._loadHighScoreDisplay();
-        this._powerUpReset();
-        this._cookieCrumb.style.visibility = 'visible';
-        this._gameOver = false;
+
+        this._timer.timerReset();
+        this._timeElapsed.innerText = `00:00`;
+        this._updateTime();
     }
 
     _powerUpReset() {
