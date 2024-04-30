@@ -336,7 +336,7 @@ class PlayThrough {
         this._superClickBtn.addEventListener('click', this._powerUpToggle.bind(this, 'super-click'));
         this._freezeTimeBtn.addEventListener('click', this._powerUpToggle.bind(this, 'freeze-time'))
 
-        this._resetBtn.addEventListener('click', () => {this._gameOver = true;});
+        this._resetBtn.addEventListener('click', this._manualReset.bind(this), {once: true});
     }
 
     _loadHighScoreDisplay() {
@@ -462,12 +462,11 @@ class PlayThrough {
     }
 
     _updateTime() {
+        if (this._gameOver) {
+            this._gameReset();
+            return;
+        }
         setTimeout(() => {
-            if (this._gameOver) {
-                this._gameReset();
-                return;
-            }
-
             if (this._powerUpActive && this._timer.powerUpElapsedTime() >= this._powerUpTime) {
                 this._powerUpReset();
             } else if (this._powerUpActive) {
@@ -476,7 +475,7 @@ class PlayThrough {
 
             if (this._timeFreeze === false) {
                 this._timeElapsed.innerText = `${this._timer.displayTime(this._timer.totalTime())}`
-                console.log('test')
+                console.log(this._timer.totalTime())
             } else {
                 this._timer.freezeTime();
                 console.log(this._timer._frozenTime)
@@ -488,6 +487,14 @@ class PlayThrough {
 
     _displayPowerUpTime() {
         this._currentPowerUpTimeDisplay.innerText = `${this._powerUpTime - this._timer.powerUpCurrentTime()}`
+    }
+
+    _manualReset() {
+        this._gameOver = true;
+        setTimeout(() => {
+            this._resetBtn.addEventListener('click', this._manualReset.bind(this), {once: true});
+            console.log('reset')
+        }, 1000)
     }
 
     _gameReset() {
