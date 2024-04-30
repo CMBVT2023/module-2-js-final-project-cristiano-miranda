@@ -287,34 +287,33 @@ class Storage {
     };
 }
 
-
-class PlayThrough {
+class Game {
     constructor() {
-      this._cookie = new CookieCrumb();
-      this._timer = new Time();
-      this._rte = new RealTimeEvent();
+        this._cookie = new CookieCrumb();
+        this._timer = new Time();
+        this._rte = new RealTimeEvent();
 
-      this._cookieCrumbValue = 1;
+        this._cookieCrumbValue = 1;
 
-      this._holdEnabled = false;
-      this._powerUpSuperClickActive = false;
-      this._timeFreeze = false;
-      this._powerUpActive = false;
-      this._powerUpTime = 0;
-      
-    //   For testing purposes, setting this to between 1-10, upon finishing set it to 51-100
-      this._randomEventClicks = 10;
-    //   this._randomEventClicks = Math.ceil(Math.random() * 50) + 50;
-      this._eventActiveEnemy = false;
-      this._eventActiveTrail = false;
-      this._eventActiveHunt = false;
+        this._holdEnabled = false;
+        this._powerUpSuperClickActive = false;
+        this._timeFreeze = false;
+        this._powerUpActive = false;
+        this._powerUpTime = 0;
+        
+        //   For testing purposes, setting this to between 1-10, upon finishing set it to 51-100
+        this._randomEventClicks = 10;
+        //   this._randomEventClicks = Math.ceil(Math.random() * 50) + 50;
+        this._eventActiveEnemy = false;
+        this._eventActiveTrail = false;
+        this._eventActiveHunt = false;
 
-      this._gameOver = false;
+        this._gameOver = false;
+        this._manualStop = false;
 
-      this._loadHTMLElements();
-      this._loadDefaultEventListeners();
-      this._loadHighScoreDisplay();
-      this._updateTime();
+        this._loadHTMLElements();
+        this._loadDefaultEventListeners();
+        this._loadHighScoreDisplay();
     }
 
     _loadHTMLElements() {
@@ -336,7 +335,7 @@ class PlayThrough {
         this._superClickBtn.addEventListener('click', this._powerUpToggle.bind(this, 'super-click'));
         this._freezeTimeBtn.addEventListener('click', this._powerUpToggle.bind(this, 'freeze-time'))
 
-        this._resetBtn.addEventListener('click', this._manualReset.bind(this), {once: true});
+        this._resetBtn.addEventListener('click', this.manualReset.bind(this, false), {once: true});
     }
 
     _loadHighScoreDisplay() {
@@ -463,7 +462,7 @@ class PlayThrough {
 
     _updateTime() {
         if (this._gameOver) {
-            this._gameReset();
+            this._gameReset(this._manualStop);
             return;
         }
         setTimeout(() => {
@@ -478,7 +477,7 @@ class PlayThrough {
                 console.log(this._timer.totalTime())
             } else {
                 this._timer.freezeTime();
-                console.log(this._timer._frozenTime)
+                console.log("Frozen Time: " + this._timer._frozenTime)
             }
             
             this._updateTime();
@@ -489,15 +488,7 @@ class PlayThrough {
         this._currentPowerUpTimeDisplay.innerText = `${this._powerUpTime - this._timer.powerUpCurrentTime()}`
     }
 
-    _manualReset() {
-        this._gameOver = true;
-        setTimeout(() => {
-            this._resetBtn.addEventListener('click', this._manualReset.bind(this), {once: true});
-            console.log('reset')
-        }, 1000)
-    }
-
-    _gameReset() {
+    _gameReset(value) {
         this._gameOver = false;
 
         this._powerUpReset();
@@ -511,9 +502,12 @@ class PlayThrough {
         this._updateScoreBoard();
         this._loadHighScoreDisplay();
 
-        this._timer.timerReset();
         this._timeElapsed.innerText = `00:00`;
-        this._updateTime();
+        if (value == false) {
+            this.startCountDown();
+        } else {
+            this._manualStop = false;
+        }
     }
 
     _powerUpReset() {
@@ -528,6 +522,83 @@ class PlayThrough {
         this._MainPowerUpDisplay.style.visibility = 'hidden';
     }
 
+    manualReset(value) {
+        if (value) {
+            this._manualStop = true;
+            this._gameOver = true;
+        } else {
+            this._gameOver = true;
+            setTimeout(() => {
+                this._resetBtn.addEventListener('click', this.manualReset.bind(this, false), {once: true});
+            }, 1000)
+        }
+    }
+
+    startCountDown() {
+        this._timer.timerReset();
+        this._updateTime();
+    }
+
 };
 
-const game1 = new PlayThrough();
+class User {
+    constructor() {
+        this._game = new Game();
+
+        this._userName;
+        this._userScore;
+        this._userHighestScore;
+
+        this._loadHTMLElements();
+        this._loadDefaultEventListeners()
+
+        this._toggleUserNameMenu(false);
+    }
+
+    _loadHTMLElements() {
+        this._userNameModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('username-dialog'));
+        this._userNameDisplay = document.getElementById('username-display')
+
+        this._userNameBtn = document.getElementById('username-set');
+        this._userNameTextBox = document.getElementById('username-text')
+    }
+
+    _loadDefaultEventListeners() {
+        this._userNameBtn.addEventListener('click', this._setUserName.bind(this))
+        this._userNameDisplay.addEventListener('click', this._toggleUserNameMenu.bind(this))
+    }
+
+    _capitalizeName(value) {
+        return value[0].toUpperCase() + value.slice(1, value.length)
+    }
+
+    _toggleUserNameMenu(value) {
+        if (value) {
+            let userResult = confirm('Warning! Changing your name will reset your current game\'s progress.')
+            if (userResult) {
+                this._userNameModal.toggle();
+                this._game.manualReset(true);
+            }
+        } else {
+            this._userNameModal.toggle();
+        }
+    }
+
+    _setUserName() {
+        let userName = this._userNameTextBox.value.toLowerCase() 
+        if (userName != '') {
+            userName = this._capitalizeName(userName); 
+            this._userNameModal.toggle();
+            this._displayUserName(userName);
+            this._game.startCountDown();
+        } else {
+            confirm('Please Enter a Valid User Name');   
+        }   
+    }
+
+    _displayUserName(value) {
+        this._userNameDisplay.innerText = value;
+    }
+}
+
+const newUser = new User();

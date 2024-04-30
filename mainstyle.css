@@ -48,3 +48,7 @@ body {
     user-select: none;
     visibility: hidden;
 }
+
+#rte-display, #powerup-display {
+    width: 25%;
+}
