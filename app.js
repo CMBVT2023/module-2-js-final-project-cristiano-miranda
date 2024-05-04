@@ -361,13 +361,14 @@ class Game {
         this._rte = new RealTimeEvent();
 
         this._cookieCrumbValue = 1;
+        this._powerUpNum = 0;
 
         this._holdEnabled = false;
         this._powerUpSuperClickActive = false;
         this._powerUpActive = false;
         
         //   For testing purposes, setting this to between 1-10, upon finishing set it to 51-100
-        this._randomEventClicks = 15;
+        this._randomEventClicks = 100;
         //   this._randomEventClicks = Math.ceil(Math.random() * 50) + 50;
         this._eventActiveEnemy = false;
         this._eventActiveTrail = false;
@@ -375,14 +376,20 @@ class Game {
 
         this._loadHTMLElements();
         this._loadDefaultEventListeners();
+        this._powerUpDisplayPrice();
         this._loadHighScoreDisplay();
     }
 
     _loadHTMLElements() {
         this._cookieCrumb = document.getElementById('cookie-crumb');
+        
         this._MainPowerUpDisplay = document.getElementById('powerup-display');
         this._currentPowerUpDisplay = document.getElementById('current-powerup');
         this._currentHighScoreDisplay = document.getElementById('highest-score');
+        this._freezeTimePriceDisplay = document.getElementById('freeze-time-cost');
+        this._boostValuePriceDisplay = document.getElementById('boost-value-cost');
+        this._superClickPriceDisplay = document.getElementById('super-click-cost');
+        
         this._boostValueBtn = document.getElementById('boost-value');
         this._superClickBtn = document.getElementById('super-click');
         this._freezeTimeBtn = document.getElementById('freeze-time');
@@ -391,9 +398,9 @@ class Game {
 
     _loadDefaultEventListeners() {
         this._cookieCrumb.addEventListener('click', this._userClick.bind(this));
-        this._boostValueBtn.addEventListener('click', this._powerUpToggle.bind(this, 'boost-value'));
-        this._superClickBtn.addEventListener('click', this._powerUpToggle.bind(this, 'super-click'));
-        this._freezeTimeBtn.addEventListener('click', this._powerUpToggle.bind(this, 'freeze-time'))
+        this._boostValueBtn.addEventListener('click', this._powerUpPreCheck.bind(this, 'boost-value'));
+        this._superClickBtn.addEventListener('click', this._powerUpPreCheck.bind(this, 'super-click'));
+        this._freezeTimeBtn.addEventListener('click', this._powerUpPreCheck.bind(this, 'freeze-time'))
 
         this._resetBtn.addEventListener('click', this.resetGame.bind(this), {once: true});
     }
@@ -452,36 +459,58 @@ class Game {
         }
     }
 
+    _powerUpDisplayPrice() {
+        this._boostValuePriceDisplay.innerText = this._powerUpPriceCalculator(50);
+        this._superClickPriceDisplay.innerText = this._powerUpPriceCalculator(30);
+        this._freezeTimePriceDisplay.innerText = this._powerUpPriceCalculator(20);
+    }
+
+    _powerUpPriceCalculator(baseCost) {
+        return Math.ceil(((this._powerUpNum * .75) * baseCost) + baseCost);
+    }
+
     _powerUpToggle(powerUp) {
-        if ((this._powerUpActive != true && this._eventActive() != true)) {
-            if (powerUp === 'boost-value' && this._cookie.currentCookies >= 10) {
+        this._powerUpNum += 1;
+        if (powerUp === 'boost-value') {
                 let boostValue = Math.ceil(Math.random() * 2) + 1;
                 this._cookieCrumbValue = boostValue;
     
-                this._cookie.powerUp(10);
-                this._timer.startPowerUpTimer(15);
-                this._powerUpActive = true;
+                this._timer.startPowerUpTimer(10);
                 this._displayPowerUp('Boost Value');
-                this._updateScoreBoard();
-                this._powerUpCheck();
-            } else if (powerUp === 'super-click' && this._cookie.currentCookies >= 10) {
+            } else if (powerUp === 'super-click') {
                 this._cookieCrumb.addEventListener('click', this._powerUpSuperClickToggle.bind(this, true), {once: true});
     
-                this._cookie.powerUp(10);
-                this._timer.startPowerUpTimer(20)
-                this._powerUpActive = true;
+                this._timer.startPowerUpTimer(15)
                 this._displayPowerUp('Super Click');
-                this._updateScoreBoard();
-                this._powerUpCheck();
-            } else if (powerUp === 'freeze-time' && this._cookie.currentCookies >= 10) {
+
+            } else if (powerUp === 'freeze-time') {
     
-                this._cookie.powerUp(10);
                 this._timer.freezeTimeCounter(10)
-                this._powerUpActive = true;
                 this._displayPowerUp('Freeze Time');
-                this._updateScoreBoard();
-                this._powerUpCheck();
             };
+
+            this._powerUpDisplayPrice();
+            this._powerUpActive = true;
+            this._updateScoreBoard();
+            this._powerUpCheck();
+    }
+
+    _powerUpPreCheck(powerUp) {
+        if ((this._powerUpActive != true && this._eventActive() != true)) {
+            let powerUpPrice;
+
+            if (powerUp === 'boost-value') {
+                powerUpPrice = this._powerUpPriceCalculator(50);
+            } else if (powerUp === 'super-click') {
+                powerUpPrice = this._powerUpPriceCalculator(30);
+            } else if (powerUp === 'freeze-time') {
+                powerUpPrice = this._powerUpPriceCalculator(20);
+            };
+
+            if (powerUpPrice <= this._cookie.currentCookies) {
+                this._cookie.powerUp(powerUpPrice);
+                this._powerUpToggle(powerUp);
+            }
         }
     }
 
@@ -504,7 +533,6 @@ class Game {
 
     _eventCheck() {
         this._eventCounter = setInterval(() => {
-            console.log('checking')
             if ((this._eventActiveEnemy && this._rte.enemyAlive === false) || (this._eventActiveTrail && this._rte.cookieTrailComplete) || (this._eventActiveHunt && this._rte._cookieHuntActive === false)) {
                 this._cookie.randomIncrease();
                 this._updateScoreBoard();
@@ -524,10 +552,12 @@ class Game {
     _gameReset() {
         this._timer.timerStop();
 
+        this._powerUpNum = 0;
         this._powerUpReset();
         this._eventReset();
 
         this._cookie.scoreReset();
+        this._powerUpDisplayPrice();        
         this._updateScoreBoard();
         this._loadHighScoreDisplay();
     }
