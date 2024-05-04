@@ -503,40 +503,29 @@ class Game {
     };
 
     _eventCheck() {
-        setTimeout(() => {
+        this._eventCounter = setInterval(() => {
+            console.log('checking')
             if ((this._eventActiveEnemy && this._rte.enemyAlive === false) || (this._eventActiveTrail && this._rte.cookieTrailComplete) || (this._eventActiveHunt && this._rte._cookieHuntActive === false)) {
-                this._cookieCrumb.style.visibility = 'visible';
                 this._cookie.randomIncrease();
                 this._updateScoreBoard();
-                this._rte.clearRTE();
-                this._eventActiveEnemy = false;
-                this._eventActiveTrail = false;
-                this._eventActiveHunt = false;
-                return;
+                this._eventReset();
             }
-            this._eventCheck();
         }, 250)
     }
 
     _powerUpCheck() {
-        setTimeout(() => {
-            if (this._powerUpActive && this._timer.powerUpTimerActive !== true) {
+        this._powerUpCounter = setInterval(() => {
+            if (this._powerUpActive && this._timer.powerUpTimerActive === false) {
                 this._powerUpReset();
-                return;
             }
-            this._powerUpCheck()
-        }, 900)
+        }, 1000)
     }
 
     _gameReset() {
         this._timer.timerStop();
 
         this._powerUpReset();
-        this._rte.clearRTE();
-        this._cookieCrumb.style.visibility = 'visible';
-        this._eventActiveEnemy = false;
-        this._eventActiveTrail = false;
-        this._eventActiveHunt = false;
+        this._eventReset();
 
         this._cookie.scoreReset();
         this._updateScoreBoard();
@@ -549,9 +538,19 @@ class Game {
         this._powerUpActive = false;
 
         this._timer.clearPowerUp();
+        clearInterval(this._powerUpCounter);
 
         this._MainPowerUpDisplay.style.visibility = 'hidden';
         this._currentPowerUpDisplay.innerText = ``;
+    }
+
+    _eventReset() {
+        this._rte.clearRTE();
+        this._cookieCrumb.style.visibility = 'visible';
+        this._eventActiveEnemy = false;
+        this._eventActiveTrail = false;
+        this._eventActiveHunt = false;
+        clearInterval(this._eventCounter);
     }
 
     endGame() {
