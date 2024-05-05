@@ -367,9 +367,7 @@ class Game {
         this._powerUpSuperClickActive = false;
         this._powerUpActive = false;
         
-        //   For testing purposes, setting this to between 1-10, upon finishing set it to 51-100
-        this._randomEventClicks = 100;
-        //   this._randomEventClicks = Math.ceil(Math.random() * 50) + 50;
+        this._randomEventClicks = 0;
         this._eventActiveEnemy = false;
         this._eventActiveTrail = false;
         this._eventActiveHunt = false;
@@ -421,6 +419,10 @@ class Game {
         this._MainPowerUpDisplay.style.visibility = 'visible';
     }
 
+    _eventClickCalculator() {
+        this._randomEventClicks = Math.ceil(Math.random() * 50) + this._cookie.totalClicks + 30;
+    }
+
     _eventActive() {
         return (this._eventActiveEnemy || this._eventActiveHunt || this._eventActiveTrail);
     }
@@ -454,7 +456,7 @@ class Game {
         if (this._cookie.currentCookies > 100) {
             Storage.setHighScore(this._timer.totalTime());
             this.endGame();
-        } else if (this._powerUpActive != true && this._cookie.totalClicks === this._randomEventClicks && this._eventActive() != true) {
+        } else if (this._cookie.totalClicks === this._randomEventClicks && this._eventActive() != true) {
             this._activateEvent();
         }
     }
@@ -536,6 +538,7 @@ class Game {
             if ((this._eventActiveEnemy && this._rte.enemyAlive === false) || (this._eventActiveTrail && this._rte.cookieTrailComplete) || (this._eventActiveHunt && this._rte._cookieHuntActive === false)) {
                 this._cookie.randomIncrease();
                 this._updateScoreBoard();
+                this._eventClickCalculator();
                 this._eventReset();
             }
         }, 250)
@@ -606,6 +609,7 @@ class Game {
 
     startGame() {
         this._timer.timerStart();
+        this._eventClickCalculator();
     }
 
 };
