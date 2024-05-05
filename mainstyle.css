@@ -10,11 +10,14 @@ body {
     height: 90vh;
 }
 
-.main-cookie-crumb {
-    background-color: #553311;
-    color: #eecc77;
-    user-select: none;
-    height: 45vh;
+#cookie-crumb, #broken-cookie {
+    height: 350px;
+    width: 400px;
+}
+
+#broken-cookie {
+    visibility: hidden;
+    margin-left: -400px;
 }
 
 .power-up-selection {
@@ -27,23 +30,26 @@ body {
 }
 
 .enemy-rte {
-    background-color: #553311;
-    width: 20%;
     user-select: none;
     position: absolute;
     text-align: center;
 }
 
+#enemy-entity {
+    width: 250px;
+}
+
+.cookie-crumb-trail, .cookie-crumb-hunt {
+    height: 100px;
+    width: 100px;
+}
+
 .cookie-crumb-trail {
-    color: #eecc77;
-    background-color: #553311;
     position: absolute;
     user-select: none;
 }
 
 .cookie-crumb-hunt {
-    color: #eecc77;
-    background-color: #553311;
     position: absolute;
     user-select: none;
     visibility: hidden;

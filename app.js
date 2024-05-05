@@ -195,7 +195,7 @@ class RealTimeEvent {
         this._cookieHuntElement = document.createElement('div');
         this._cookieHuntNum = Math.ceil(Math.random() * 5) + 5;
         for (let i = 0; i < this._cookieHuntNum; i++) {
-            this._cookieHuntElement.innerHTML += `<h1 class="cookie-crumb-hunt">Crumb #${i + 1}</h1>`
+            this._cookieHuntElement.innerHTML += `<img src="./assets/Mini Cookie Asset.png" class="cookie-crumb-hunt"></img>`
         }
         this._rteContainer.appendChild(this._cookieHuntElement);
 
@@ -219,9 +219,7 @@ class RealTimeEvent {
     summonCookieTrail() {
         this._cookieTrailElement = document.createElement('div')
         for (let i = 0; i < 10; i++) {
-            // Check that this id is unnecessary 
-            // this._cookieTrailElement.innerHTML += `<h1 class="cookie-crumb-trail" id="crumb-${i}">Crumb</h1>`
-            this._cookieTrailElement.innerHTML += `<h1 class="cookie-crumb-trail">Crumb</h1>`
+            this._cookieTrailElement.innerHTML += `<img src="./assets/Mini Cookie Asset.png" class="cookie-crumb-trail"></img>`
         }
         this._rteContainer.appendChild(this._cookieTrailElement);
 
@@ -242,14 +240,14 @@ class RealTimeEvent {
 
     summonEnemy() {
         this._enemyElement = document.createElement('div')
-        this._enemyElement.innerHTML = `<h1 id="enemy-entity">Enemy Entity Test</h1>`
+        this._enemyElement.innerHTML = `<img src="./assets/Monster Asset.png" id="enemy-entity"></img>`
         this._enemyElement.classList.add('enemy-rte')
         this._rteContainer.appendChild(this._enemyElement)
 
-        let randomTop = Math.ceil(Math.random() * 55) + 20;
+        let randomTop = Math.ceil(Math.random() * 55) + 10;
         this._enemyElement.style.top = `${randomTop}%`;
 
-        let randomLeft = Math.ceil(Math.random() * 70) + 5;
+        let randomLeft = Math.ceil(Math.random() * 85);
         this._enemyElement.style.left = `${randomLeft}%`;
 
         this._enemyElement.addEventListener('click', this._enemyDamage.bind(this))
@@ -380,6 +378,7 @@ class Game {
 
     _loadHTMLElements() {
         this._cookieCrumb = document.getElementById('cookie-crumb');
+        this._brokenCookieCrumb = document.getElementById('broken-cookie');
         
         this._MainPowerUpDisplay = document.getElementById('powerup-display');
         this._currentPowerUpDisplay = document.getElementById('current-powerup');
@@ -432,6 +431,7 @@ class Game {
 
         this._powerUpReset();
         this._cookieCrumb.style.visibility = 'hidden';
+        this._brokenCookieCrumb.style.visibility = 'visible';
 
         if (num === 1) {
             this._rte.summonEnemy();
@@ -580,6 +580,7 @@ class Game {
     _eventReset() {
         this._rte.clearRTE();
         this._cookieCrumb.style.visibility = 'visible';
+        this._brokenCookieCrumb.style.visibility = 'hidden';
         this._eventActiveEnemy = false;
         this._eventActiveTrail = false;
         this._eventActiveHunt = false;
