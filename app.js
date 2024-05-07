@@ -274,18 +274,25 @@ class RealTimeEvent {
     }
 
     displayRTE(value, currentEvent) {
-        if (value && currentEvent === 1) {
+        if (value) {
             this._rteDisplay.style.visibility = 'visible';
-            this._rteEventDisplay.innerText = 'Enemy Health Remaining:'
-            this._rteRemainingDisplay.innerText = this._enemyHealth;
-        } else if (value && currentEvent === 2) {
-            this._rteDisplay.style.visibility = 'visible';
-            this._rteEventDisplay.innerText = 'Cookie Trail Crumbs Remaining:'
-            this._rteRemainingDisplay.innerText = 10 - this._currentTrailCrumb;
-        } else if (value && currentEvent === 3) {
-            this._rteDisplay.style.visibility = 'visible';
-            this._rteEventDisplay.innerText = 'Cookie Hunt Crumbs Remaining:'
-            this._rteRemainingDisplay.innerText = this._cookieHuntNum - this._currentHuntCrumb;
+            switch (currentEvent) {
+                case 1: {
+                    this._rteEventDisplay.innerText = 'Enemy Health Remaining:'
+                    this._rteRemainingDisplay.innerText = this._enemyHealth;
+                    break;
+                }
+                case 2: {
+                    this._rteEventDisplay.innerText = 'Cookie Trail Crumbs Remaining:'
+                    this._rteRemainingDisplay.innerText = 10 - this._currentTrailCrumb;
+                    break;
+                }
+                case 3: {
+                    this._rteEventDisplay.innerText = 'Cookie Hunt Crumbs Remaining:'
+                    this._rteRemainingDisplay.innerText = this._cookieHuntNum - this._currentHuntCrumb;
+                    break;
+                }
+            }
         } else {
             this._rteDisplay.style.visibility = 'hidden';
             this._rteEventDisplay.innerText = ``;
@@ -433,16 +440,24 @@ class Game {
         this._cookieCrumb.style.visibility = 'hidden';
         this._brokenCookieCrumb.style.visibility = 'visible';
 
-        if (num === 1) {
-            this._rte.summonEnemy();
-            this._eventActiveEnemy = true;
-        } else if (num === 2) {
-            this._rte.summonCookieTrail();
-            this._eventActiveTrail = true;
-        } else if (num === 3) {
-            this._rte.summonCookieHunt();
-            this._eventActiveHunt = true;
+        switch(num) {
+            case 1: {
+                this._rte.summonEnemy();
+                this._eventActiveEnemy = true;
+                break;
+            }
+            case 2: {
+                this._rte.summonCookieTrail();
+                this._eventActiveTrail = true;
+                break;
+            }
+            case 3: {
+                this._rte.summonCookieHunt();
+                this._eventActiveHunt = true;
+                break;
+            }
         }
+
         this._eventCheck();
     }
 
@@ -473,23 +488,30 @@ class Game {
 
     _powerUpToggle(powerUp) {
         this._powerUpNum += 1;
-        if (powerUp === 'boost-value') {
+
+        switch (powerUp) {
+            case 'boost-value': {
                 let boostValue = Math.ceil(Math.random() * 2) + 1;
                 this._cookieCrumbValue = boostValue;
     
                 this._timer.startPowerUpTimer(10);
                 this._displayPowerUp('Boost Value');
-            } else if (powerUp === 'super-click') {
+                break;
+            }
+            case 'super-click': {
                 this._cookieCrumb.addEventListener('click', this._powerUpSuperClickToggle.bind(this, true), {once: true});
     
                 this._timer.startPowerUpTimer(15)
                 this._displayPowerUp('Super Click');
-
-            } else if (powerUp === 'freeze-time') {
-    
+                break;
+            }
+            case 'freeze-time': {
                 this._timer.freezeTimeCounter(10)
+
                 this._displayPowerUp('Freeze Time');
-            };
+                break;
+            }
+        }
 
             this._powerUpDisplayPrice();
             this._powerUpActive = true;
@@ -501,13 +523,20 @@ class Game {
         if ((this._powerUpActive != true && this._eventActive() != true)) {
             let powerUpPrice;
 
-            if (powerUp === 'boost-value') {
-                powerUpPrice = this._powerUpPriceCalculator(50);
-            } else if (powerUp === 'super-click') {
-                powerUpPrice = this._powerUpPriceCalculator(30);
-            } else if (powerUp === 'freeze-time') {
-                powerUpPrice = this._powerUpPriceCalculator(20);
-            };
+            switch (powerUp) {
+                case 'boost-value': {
+                    powerUpPrice = this._powerUpPriceCalculator(50);
+                    break;
+                }
+                case 'super-click': {
+                    powerUpPrice = this._powerUpPriceCalculator(30);
+                    break;
+                }
+                case 'freeze-time': {
+                    powerUpPrice = this._powerUpPriceCalculator(20);
+                    break;
+                }
+            }
 
             if (powerUpPrice <= this._cookie.currentCookies) {
                 this._cookie.powerUp(powerUpPrice);
