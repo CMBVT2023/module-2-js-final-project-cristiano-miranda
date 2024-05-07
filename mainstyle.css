@@ -18,6 +18,7 @@ body {
 #broken-cookie {
     visibility: hidden;
     margin-left: -400px;
+    opacity: 80%;
 }
 
 .power-up-selection {
