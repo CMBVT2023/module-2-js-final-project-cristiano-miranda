@@ -1,23 +1,30 @@
-body {
+html, body {
     width: 100vw;
-    min-width: 500px;
+    min-width: 900px;
     height: 100vh;
-    min-height: 600px;
+    min-height: 750px;
     overflow: hidden;
+    user-select: none;
 }
 
 .main-game-body {
-    height: 90vh;
+    height: 100vh;
+    width: 100vw;
+    min-width: 500px;
+}
+
+.info-section {
+    width: 300px;
 }
 
 #cookie-crumb, #broken-cookie {
-    height: 350px;
-    width: 400px;
+    height: 475px;
+    width: 500px;
 }
 
 #broken-cookie {
     visibility: hidden;
-    margin-left: -400px;
+    margin-left: -500px;
     opacity: 80%;
 }
 
@@ -31,7 +38,6 @@ body {
 }
 
 .enemy-rte {
-    user-select: none;
     position: absolute;
     text-align: center;
 }
@@ -47,12 +53,10 @@ body {
 
 .cookie-crumb-trail {
     position: absolute;
-    user-select: none;
 }
 
 .cookie-crumb-hunt {
     position: absolute;
-    user-select: none;
     visibility: hidden;
 }
 

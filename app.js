@@ -468,7 +468,7 @@ class Game {
         const totalClicksInfo = document.getElementById('total-clicks');
         totalClicksInfo.textContent = this._cookie.totalClicks;
 
-        if (this._cookie.currentCookies > 100) {
+        if (this._cookie.currentCookies >= 100) {
             Storage.setHighScore(this._timer.totalTime());
             this.endGame();
         } else if (this._cookie.totalClicks === this._randomEventClicks && this._eventActive() != true) {

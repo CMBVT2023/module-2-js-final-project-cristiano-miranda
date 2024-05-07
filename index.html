@@ -14,7 +14,7 @@
 </head>
 <body>
     
-    <div class="modal fade" id="username-dialog" tabindex="-2" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="userNameModal" aria-hidden="true">
+    <div class="modal fade" id="username-dialog" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="userNameModal" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">  
                 <div class="'modal-header">
@@ -30,42 +30,39 @@
         </div>
     </div>
 
-    <div class="container-fluid position-absolute top-0 start-0 m-0 row justify-content-between main-header">
-        <div class="col-2 justify-content-center text-center user-selection">
-            <h4 class="col-12">Currently Playing:</h4>
-            <h6 class="col-12" id="username-display"></h6>
-            <button class="col-6 mt-1" id="reset">Reset</button>
-        </div>
-
-        <div class="container position-absolute top-50 start-50 translate-middle m-0 row text-center justify-content-center" id="powerup-display">
-            <h5 class="col-12" id="current-powerup"></h5>
-            <h3 class="col-12" id="powerup-time"></h3>
-        </div>
+    <div class="container position-absolute top-0 start-50 translate-middle mt-5 row text-center justify-content-center" id="powerup-display">
+        <h5 class="col-12" id="current-powerup"></h5>
+        <h3 class="col-12" id="powerup-time"></h3>
+    </div>
     
-        <div class="container position-absolute top-50 start-50 translate-middle m-0 row text-center justify-content-center" id="rte-display">
-            <h5 class="col-12" id="current-rte"></h5>
-            <h3 class="col-12" id="rte-remain"></h3>
-        </div>
+    <div class="container position-absolute top-0 start-50 translate-middle mt-5 row text-center justify-content-center" id="rte-display">
+        <h5 class="col-12" id="current-rte"></h5>
+        <h3 class="col-12" id="rte-remain"></h3>
+    </div>
 
-        <div class="col-2 row info-section">
-            <h5 class="col-8">Current Cookies:</h5>
-            <h5 class="col-4 text-end" id="current-cookies">0</h5>
+    <div class="container position-absolute top-0 start-0 m-0 col-2 justify-content-center text-center user-selection">
+        <h4 class="col-12">Currently Playing:</h4>
+        <h6 class="col-12" id="username-display"></h6>
+        <button class="col-6 mt-1" id="reset">Reset</button>
+    </div>
 
-            <h5 class="col-8">Total Clicks:</h5>
-            <h5 class="col-4 text-end" id="total-clicks">0</h5>
+    <div class="container-fluid position-absolute top-0 end-0 m-0 row info-section">
+        <h5 class="col-10">Current Cookies:</h5>
+        <h5 class="col-2 text-end" id="current-cookies">0</h5>
 
-            <h5 class="col-8">Time Elapsed:</h5>
-            <h5 class="col-4 text-end" id="time-elapsed">00:00</h5>
+        <h5 class="col-10">Total Clicks:</h5>
+        <h5 class="col-2 text-end" id="total-clicks">0</h5>
 
-            <h5 class="col-8">Highest Score:</h5>
-            <h5 class="col-4 text-end" id="highest-score">00:00</h5>
-        </div>
+        <h5 class="col-8">Time Elapsed:</h5>
+        <h5 class="col-4 text-end" id="time-elapsed">00:00</h5>
+
+        <h5 class="col-8">Highest Score:</h5>
+        <h5 class="col-4 text-end" id="highest-score">00:00</h5>
     </div>
 
     <div class="container-fluid row justify-content-center align-content-center main-game-body">
         <img src="./assets/Cookie.png" id="cookie-crumb"></img>
         <img src="./assets/Broken Cookie.png" id="broken-cookie"></img>
-
     </div>
 
     <div class="container-fluid position-absolute bottom-0 start-0 m-0 row justify-content-between power-up-selection">
