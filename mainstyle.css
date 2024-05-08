@@ -5,12 +5,20 @@ html, body {
     min-height: 750px;
     overflow: hidden;
     user-select: none;
+    background-color: #DD9955;
 }
 
 .main-game-body {
     height: 100vh;
     width: 100vw;
     min-width: 500px;
+}
+
+.user-selection, .info-section {
+    background-color: #553311;
+    color: #eecc77;
+    border-radius: 20px;
+    padding: 10px;
 }
 
 .info-section {
@@ -29,7 +37,7 @@ html, body {
 }
 
 .power-up-selection {
-    background-color: #aa7733;
+    background-color: #553311;
     color: #eecc77;
 }
 
