@@ -41,6 +41,11 @@ html, body {
     color: #eecc77;
 }
 
+.user-button {
+    background-color: #DD9955;
+    color: #553311;
+}
+
 #powerup-display, #rte-display {
     visibility: hidden;
 }
