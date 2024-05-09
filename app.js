@@ -1,140 +1,207 @@
 class Timer {
     constructor() {
+        // Initializes variables for the main timer and the powerup timer.
         this._gameStartTime;
         this._powerUpStartTime;
         this._frozenTime = 0;
 
+        // Initializes two booleans that will be used to check if a powerup is active.
         this._powerUpTimerActive = false;
         this._freezeTime = false;
 
+        // Function call that will load all HTML elements related to the timers.
         this._loadHTMLElements();
     }
     
+    // Loads all HTML elements related to the timer.
     _loadHTMLElements() {
         this._timeElapsedDisplay = document.getElementById('time-elapsed');
 
         this._powerUpTimeDisplay = document.getElementById('powerup-time');
     }
 
-    
+    // Updates the timer element with the current game time elapsed 
     _displayElapsedTime() {
+        // If the freeze time powerup is active, then this timer will not update until said powerup gets disabled
         if (this._freezeTime != true) {
             this._timeElapsedDisplay.innerText = `${this.convertTime(this.totalTime())}`
         }
     }
 
+    // Updates the powerup timer with the remaining time for the currently active powerup.
+    // // The parameter signifies how long the powerup should last.
     _powerUpElapsedTime(time) {
+        // Updates the powerup time remaining
         this._powerUpTimeDisplay.innerText = `${time - this.powerUpCurrentTime()}`
+        
+        // Checks if the powerup has reached the time limit passed in as a parameter,
+        // if so then call the function to stop the powerup timer.
         if (this.powerUpCurrentTime() >= time) {
             this.stopPowerUpTimer();
         }
     }
 
+    // Clears the timer display resetting its display back to 0
     clearTimerDisplay() {
         this._timeElapsedDisplay.innerText = `00:00`;
     }
 
+    // Returns the value for the powerUpTimerActive boolean.
     get powerUpTimerActive() {
         return this._powerUpTimerActive;
     }
 
+    // Returns the total elapsed game time, the amount of time from the games start subtracted by the amount of time the freeze ability was active,
+    // this value is returned in seconds. 
     totalTime() {
         return Math.floor((Date.now() - this._gameStartTime) / 1000) - this._frozenTime;
     }
 
+    // Sets the current time when the functions is called to the powerup timer's start time,
+    // and sets the powerUpTimerActive variable to true
     powerUpSetTime() {
         this._powerUpStartTime = Date.now();
         this._powerUpTimerActive = true;
     }
 
+    // Returns the amount of elapsed time has pasted since a powerup has activated in seconds
     powerUpCurrentTime() {
         return Math.floor((Date.now() - this._powerUpStartTime) / 1000);
     }
 
+    // Disables the powerup timer and sets the sets the powerUpTimerActive variable to false
     stopPowerUpTimer() {
         clearInterval(this._powerUpCounter);
         this._powerUpTimerActive = false;
     }
 
+    // Calls the function to sets the powerup's starting time,
+    // displays the amount of time the powerup will last through the parameter passed in,
+    // and Creates the loop using setInterval that will update the display every second with the powerup's remaining time.
+    // // The parameter signifies how long the powerup should last.
     startPowerUpTimer(time) {
         this.powerUpSetTime();
         this._powerUpTimeDisplay.innerText = `${time}`
         this._powerUpCounter = setInterval(this._powerUpElapsedTime.bind(this, time), 1000);
     }
 
+    // Activates the freeze time powerup.
+    // // The parameter signifies how long the powerup should last.
     freezeTimeCounter(time) {
+        // Calls the function to set the powerup's starting time.
         this.powerUpSetTime();
+
+        // Sets freeze time to true, to signify that the freeze time powerup is specifically activated
         this._freezeTime = true;
+
+        // Displays the amount of time the powerup will last through the parameter passed in
         this._powerUpTimeDisplay.innerText = `${time}`
+
+        // Creates a loop that will iterate every second.
         this._powerUpCounter = setInterval(() => {
+            // Adds 1 second to the total amount of time frozen during the game
             this._frozenTime += 1;
+            // Calls the function to display the amount of time remaining for this powerup.
             this._powerUpElapsedTime(time);
+
+            // Checks if the current powerup's elapsed time has reached its allotted time, which is the parameter passed in.
+            // If so, set the freeze time to false to signify that the time freeze powerup is deactivated.
             if (this.powerUpCurrentTime() >= time) {
                 this._freezeTime = false;
             }
         }, 1000)
     }
 
+    // Disables the powerup timer and sets the powerup booleans to false, showing that powerups are current deactivated. 
     clearPowerUp() {
+        // Disables the 1 second powerup counter loop
         clearInterval(this._powerUpCounter);
+
+        // Sets the powerup booleans to false
         this._powerUpTimerActive = false;
         this._freezeTime = false;
     }
 
+    // Disables the game's main timer
     timerStop() {
+        // Disables the 1 second timer counter loop.
         clearInterval(this._timerCounter);
+        // Calls the function to reset the display.
         this.clearTimerDisplay();
     }
 
+    // Enables the game's main timer
     timerStart() {
+        // Resets all values for the timer.
         this._timerReset();
+        // Creates the 1 second timer counter loop.
         this._timerCounter = setInterval(this._displayElapsedTime.bind(this), 1000);
     }
 
+    // Resets the variables needed for the game's main timer
     _timerReset() {
+        // Sets the game's start time to the current time
         this._gameStartTime = Date.now();
+        // Resets the total allotted frozen time to 0.
         this._frozenTime = 0;
+        // Resets the timer's display
         this.clearTimerDisplay();
     }
 
+    // Converts the amount of seconds passed in to minutes and returns the newly calculated time in a stopwatch time format, 00:00.
+    // // The parameter passed in is the amount of seconds to be converted.
     convertTime(time) {
+        // Initializes a seconds and minutes variable, seconds is calculated using Modulus and minutes is calculated using division and taking the rounded down whole number using Math.floor(). 
         let seconds = time % 60;
         let minutes = Math.floor(time / 60);
+
+        // Initializes variables that will store the final seconds and minutes after they are formatted
         let secondsDisplay;
         let minutesDisplay;
         
+        // Checks if minutes is greater than ten,
+        // If so, set the minutesDisplay variable equal to minutes
+        // Else, it will append a 0 to the front of minutes and then set to the minutesDisplay variable.
         if (minutes >= 10) {
             minutesDisplay = `${minutes}`
         } else {
             minutesDisplay = `0${minutes}`;
         }
 
+        // Checks if seconds is greater than ten,
+        // If so, set the secondsDisplay variable equal to seconds
+        // Else, it will append a 0 to the front of seconds and then set to the secondsDisplay variable.
         if (seconds >= 10) {
             secondsDisplay =  `${seconds}`
         } else {
             secondsDisplay =  `0${seconds}`;
         }
 
+        // Returns the minutes in the proper time display format.
         return `${minutesDisplay}:${secondsDisplay}`
     }
 }
 
 class RealTimeEvent {
     constructor() {
+        // Initializes the variables for the enemy RTE
         this._enemyHealth = 0;
         this._enemyAlive;
         
+        // Initializes the variables for the cookie trail RTE
         this._currentTrailCrumb = 0;
         this._cookieTrailComplete;
 
+        // Initializes the variables for the cookie hunt RTE
         this._cookieHuntNum = 0;
         this._currentHuntCrumb = 0;
         this._cookieHuntActive;
 
+        // Calls the function to load all the HTML elements related to the RTE events
         this._loadHTMLElements();
-        
     }
 
+    // Loads all HTML elements related to the RTE events
     _loadHTMLElements() {
         this._rteContainer = document.getElementById('rte-spawn');
         
@@ -143,118 +210,190 @@ class RealTimeEvent {
         this._rteRemainingDisplay = document.getElementById('rte-remain');
     }
 
+    // Reduces the enemy's "health" and checks if the enemy is defeated
     _enemyDamage() {
+        // Reduces the enemy's health by one 
         this._enemyHealth -= 1;
+        // Checks if the enemy's health is depleted
+        // If it is below or at 0, it will call the function to clear the rte and halt updating the enemy's remaining health display.
         if (this._enemyHealth <= 0) {
             this.clearRTE();
             return;
         }
+
+        // Updates the enemy's remaining health display if the enemy still has not been defeated yet.
         this._rteRemainingDisplay.innerText = this._enemyHealth;
     }
 
+    // Sets the next cookie in the cookie trail to active or clickable for the user.
     _nextCookieTrailCrumb() {
+        // Hides the previously active cookie in the cookie trail
         this._cookieTrailList[this._currentTrailCrumb].style.visibility = 'hidden';
 
+        // Iterates the current cookie by one.
         this._currentTrailCrumb++;
 
+        // Checks if the currentTrailCrumb value is still below 10,
         if (this._currentTrailCrumb < 10) {
+            // If the value is still below 10,
+            // Creates a new eventlistener on the next cookie in the cookie trail and calls the function to display the current info for the RTE.
             const crumbEvent = this._cookieTrailList[this._currentTrailCrumb].addEventListener('click', this._nextCookieTrailCrumb.bind(this), {once: true})
             this.displayRTE(true, 2);
         } else if (this._currentTrailCrumb === 10) {
+            // If the value is equal to 10, calls the function to clear the RTE.
             this.clearRTE();
         }
     }
 
+    // Sets the next cookie in the cookie hunt to visible and clickable for the user.
     _nextCookieHuntCrumb() {
+        // Hides the previous cookie.
         this._cookieHuntList[this._currentHuntCrumb].style.visibility = 'hidden';
 
+        // Iterates the current cookie by one.
         this._currentHuntCrumb++;
 
+        // Checks if the currentHuntCrumb value is still below the total cookies in the cookie hunt.
         if (this._currentHuntCrumb < this._cookieHuntNum) {
+            // If the value is below the total cookies in the cookie hunt,
+            // Creates a new eventlistener on the next cookie in the cookie hunt.
             const crumbEvent = this._cookieHuntList[this._currentHuntCrumb].addEventListener('click', this._nextCookieHuntCrumb.bind(this), {once: true})
+            // Sets the current cookie in the cookie hunt to visible.
             this._cookieHuntList[this._currentHuntCrumb].style.visibility = 'visible';
+            // Calls the function to display the current info for the RTE
             this.displayRTE(true, 3);
         } else if (this._currentHuntCrumb === this._cookieHuntNum) {
+            // If the value is equal to the total cookies in the cookie hunt, calls the function to clear the RTE.
             this.clearRTE();
         }
     }
 
+    // Returns the value of the enemyAlive boolean.
     get enemyAlive() {
         return this._enemyAlive;
     }
 
+    // Returns the value of the cookieTrailComplete boolean.
     get cookieTrailComplete() {
         return this._cookieTrailComplete;
     }
 
+    // Returns the value of the cookieHuntComplete boolean.
     get cookieHuntComplete() {
         return this._cookieHuntActive;
     }
 
+    // Creates the cookie hunt RTE
     summonCookieHunt() {
+        // Initializes a new HTML div element.
         this._cookieHuntElement = document.createElement('div');
+
+        // Randomly decides the number of cookies that will be in the cookie hunt.
         this._cookieHuntNum = Math.ceil(Math.random() * 5) + 5;
+
+        // Loops through based on the amount of cookies being added to the cookie hunt.
         for (let i = 0; i < this._cookieHuntNum; i++) {
+            // On each loop, appends a new <img> tag with the cookie-crumb-hunt class to the cookie hunt div element.
             this._cookieHuntElement.innerHTML += `<img src="./assets/Mini Cookie Asset.png" class="cookie-crumb-hunt"></img>`
         }
+
+        // Appends the div element to the RTE HTML element.
         this._rteContainer.appendChild(this._cookieHuntElement);
 
+        // Selects all cookie hunt img HTML elements in a nodeList.
         this._cookieHuntList = document.querySelectorAll('.cookie-crumb-hunt');
         
+        // Loops through based on the amount of cookies being added to the cookie hunt.
         for (let i = 0; i < this._cookieHuntNum; i++) {
+            // Randomly decides the values for the top and left positioning of each cookie in the cookie hunt.
             let randomTop = Math.ceil(Math.random() * 55) + 20;
             let randomLeft = Math.ceil(Math.random() * 70) + 5;
 
+            // Sets the top and left style of a cookie to the randomized values.
             this._cookieHuntList[i].style.top = `${randomTop}%`
             this._cookieHuntList[i].style.left = `${randomLeft}%`
         }
 
+        // Sets the cookieHuntActive boolean to true.
         this._cookieHuntActive = true;
 
+        // Creates a new eventlistener on the first cookie in the cookie hunt.
         const crumbEvent = this._cookieHuntList[0].addEventListener('click', this._nextCookieHuntCrumb.bind(this), {once: true})
+        // Sets the first cookie in the cookie hunt to visible.
         this._cookieHuntList[0].style.visibility = 'visible';
+        // Calls the function to display the current info for the RTE
         this.displayRTE(true, 3);
     }
 
+    // Creates the cookie trail RTE
     summonCookieTrail() {
+        // Initializes a new HTML div element.
         this._cookieTrailElement = document.createElement('div')
+
+        // Loops through based on the amount of cookies being added to the cookie trail.
         for (let i = 0; i < 10; i++) {
+            // On each loop, appends a new <img> tag with the cookie-crumb-trail class to the cookie trail div element.
             this._cookieTrailElement.innerHTML += `<img src="./assets/Mini Cookie Asset.png" class="cookie-crumb-trail"></img>`
         }
+        // Appends the div element to the RTE HTML element.
         this._rteContainer.appendChild(this._cookieTrailElement);
 
+        // Selects all cookie hunt img HTML elements in a nodeList.
         this._cookieTrailList = document.querySelectorAll('.cookie-crumb-trail')
+
+        // Initializes a variables with the initial starting position from the left.
         let leftNum = 2;
+        // Loops through based on the amount of cookies being added to the cookie trail.
         for (let i = 0; i < 10; i++) {
+            // Randomly assigns a value for the positioning from the top.
             let randomTop = Math.ceil(Math.random() * 55) + 20
+
+            // Sets the top and left positioning equal to the assigned values.
             this._cookieTrailList[i].style.top = `${randomTop}%`;
             this._cookieTrailList[i].style.left = `${leftNum}%`
+
+            // Iterates the left positioning value by 10 each time.
             leftNum += 10;
         }
 
+        // Sets the cookieTrailComplete variable to false.
         this._cookieTrailComplete = false;
 
+        // Creates a new eventlistener on the first cookie in the cookie trail.
         const crumbEvent = this._cookieTrailList[0].addEventListener('click', this._nextCookieTrailCrumb.bind(this), {once: true});
+        // Calls the function to display the current info for the RTE
         this.displayRTE(true, 2);
     }
 
     summonEnemy() {
+        // Initializes a new HTML div element.
         this._enemyElement = document.createElement('div')
+        // Appends a new <img> element to the enemy div
         this._enemyElement.innerHTML = `<img src="./assets/Monster Asset.png" id="enemy-entity"></img>`
+        // Adds the 'enemy-rte' class to the enemy div element.
         this._enemyElement.classList.add('enemy-rte')
+        // Appends the enemy div element to the RTE element.
         this._rteContainer.appendChild(this._enemyElement)
 
+        // Randomizes a value and sets the enemy element's top positioning equal to it.
         let randomTop = Math.ceil(Math.random() * 55) + 10;
         this._enemyElement.style.top = `${randomTop}%`;
 
+        // Randomizes a value and sets the enemy element's left positioning equal to it.
         let randomLeft = Math.ceil(Math.random() * 85);
         this._enemyElement.style.left = `${randomLeft}%`;
 
+        // Creates an event listener for the enemy element,
+        // Once it is clicked it will call the function that 'damages' the enemy and reduces its health.
         this._enemyElement.addEventListener('click', this._enemyDamage.bind(this))
 
+        // Randomizes the enemy's health value.
         this._enemyHealth = Math.ceil(Math.random() * 25) + 10;
+
+        // Sets the enemyAlive boolean to true
         this._enemyAlive = true;
 
+        // Calls the function to display the current info for the RTE
         this.displayRTE(true, 1);
     }
 
