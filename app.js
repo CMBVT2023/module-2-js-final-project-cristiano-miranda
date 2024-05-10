@@ -866,84 +866,144 @@ class Game {
         };
     };
 
-    
+    // Checks when the user finishes the currently active event and then clears it.
     _eventCheck() {
+        // Creates a loop using setInterval that will run every 250 milliseconds
         this._eventCounter = setInterval(() => {
+            // Checks if the enemy event is active and if the RTE enemy alive variable is false,
+            // or checks if the cookie trail event is active and if the RTE cookieTrailComplete variable is true,
+            // or checks if the cookie hunt event is active and if the RTE cookieHuntActive variable is false
             if ((this._eventActiveEnemy && this._rte.enemyAlive === false) || (this._eventActiveTrail && this._rte.cookieTrailComplete) || (this._eventActiveHunt && this._rte._cookieHuntActive === false)) {
+                // If any of the three conditions are true.
+                
+                // Increases the user's current cookie amount by a random amount and updates the scoreboard to reflect the increase.
                 this._cookie.randomIncrease();
                 this._updateScoreBoard();
+
+                // Recalculates the next occurrence of an RTE using the user's current total clicks.
                 this._eventClickCalculator();
+
+                // Calls the reset event function to clear and reset the current RTE.
                 this._eventReset();
             }
         }, 250)
     }
 
+    // Checks when the currently active power up times out and then clears it.
     _powerUpCheck() {
+        // Creates a loop using setInterval that will run every 1 second.
         this._powerUpCounter = setInterval(() => {
+            // Checks if the powerUpActive boolean is true and if the timer's powerUpTimerActive boolean becomes false.
             if (this._powerUpActive && this._timer.powerUpTimerActive === false) {
+                // If so the function to reset the power ups is called.
                 this._powerUpReset();
             }
         }, 1000)
     }
 
+    // Resets all features of the game to prepare for a new play through.
     _gameReset() {
+        // Calls the timer function to stop the timer from timing.
         this._timer.timerStop();
 
+        // Sets the powerUpNum back to zero and resets any currently active RTEs or power ups.
         this._powerUpNum = 0;
         this._powerUpReset();
         this._eventReset();
 
+        // Calls the cookie object's function to reset the total clicks and current cookies.
         this._cookie.scoreReset();
+
+        // Calls the function to recalculate the power ups cost, which will be the base cost.
         this._powerUpDisplayPrice();        
+
+        // Updates the scoreboard to reflect the reset values.
         this._updateScoreBoard();
+
+        // Call the function to load the user's current high score from local storage.
         this._loadHighScoreDisplay();
     }
 
+    // Resets all variables and methods related to the game's power ups.
     _powerUpReset() {
+        // Sets the cookieCrumbValue variable back to 1.
         this._cookieCrumbValue = 1;
-        this._powerUpSuperClickToggle(false);
-        this._powerUpActive = false;
 
+        // Triggers the super click power up off.
+        this._powerUpSuperClickToggle(false);
+
+        // Calls the timer object's function to clear any method and variables relating to power ups.
         this._timer.clearPowerUp();
+
+        // Clears the power up checking loop.
         clearInterval(this._powerUpCounter);
 
+        // Sets the powerUpActive boolean to false.
+        this._powerUpActive = false;
+
+        // Sets the power up display to hidden and sets its innerText to an empty string.
         this._MainPowerUpDisplay.style.visibility = 'hidden';
         this._currentPowerUpDisplay.innerText = ``;
     }
 
+    // Resets all variables and methods related to the game's RTEs.
     _eventReset() {
+        // Calls the RTE object's function to clear the currently active RTE.
         this._rte.clearRTE();
+
+        // Sets the main cookie crumb to visible and hides the broken cookie crumb from the user.
         this._cookieCrumb.style.visibility = 'visible';
         this._brokenCookieCrumb.style.visibility = 'hidden';
+
+        // Sets all RTE active booleans to false.
         this._eventActiveEnemy = false;
         this._eventActiveTrail = false;
         this._eventActiveHunt = false;
+
+        // Clears the event checking loop.
         clearInterval(this._eventCounter);
     }
 
+    // Ends the currently active game, only occurs upon the user reaching the necessary cookie amount.
     endGame() {
+        // Calls the function to reset all of the game's methods and variables.
         this._gameReset();
 
+        // Activates a confirmation modal informing the user they have won, and halts any further processes until the user confirms.
         confirm("You Win");
+
+        // Calls the method to start the game.
         this.startGame();
     }
 
+    // Halts the currently running game, only occurs when the user chooses to switch their name/account.
     haltGame() {
+        // Calls the function to reset all of the game's methods and variables.
         this._gameReset();
     }
 
+    // Quickly resets the currently running game, only occurs when the user clicks the reset button.
     resetGame() {
+        // Calls the function to reset all of the game's methods and variables.
         this._gameReset();
 
+        // Reinitialize the reset button's eventlistener after a second has passed.
+        // // The reset buttons event listener can only be trigger once before needing to be reinitialized to prevent the user from calling this function multiple times.  
         setTimeout(() => {            
             this._resetBtn.addEventListener('click', this.resetGame.bind(this, false), {once: true});
         }, 1000);
 
+        // Calls the method to start the game.
         this.startGame();
     }
 
+    // Begin the games main timer and calculates the needed total clicks for RTEs to activate.
     startGame() {
+        // Begins the game's main timer to keep track of the user's potential completion time.
         this._timer.timerStart();
+
+        // Calls the function to calculate when an RTE event will occur based on the user's total clicks.
+        // // In this case, upon the game starting, the event will occur from 30-80 clicks.
         this._eventClickCalculator();
     }
 
