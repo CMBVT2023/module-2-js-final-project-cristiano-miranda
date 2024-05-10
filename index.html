@@ -14,6 +14,28 @@
 </head>
 <body>
     
+    <div class="modal fade" id="user-selector-dialog" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="userSelectionModal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div id="user-selection" class="modal-content main-game-colors">  
+                <div class="'modal-header">
+                    <h4 class="modal-title text-center" id="userSelectionModal">User Selector</h4>
+                </div>
+                <div id="user-selection" class="modal-body d-flex flex-column align-items-center text-center m-0">
+                    <div id="user-list" class="list-group">
+                        <label class="list-group-item fw-bold bg-transparent bg-gradient user-list-item"><input type="radio"></label>
+                        <label class="list-group-item fw-bold bg-transparent bg-gradient user-list-item"><input type="radio"></label>
+                    </div>
+
+                    <button id="create-new-user">Create New User</button>
+                </div>
+                <div class="modal-footer d-flex flex-row justify-content-between">
+                    <button type="button" class="btn btn-secondary" id="user-remove">Delete</button>
+                    <button type="button" class="btn btn-primary" id="user-select">Select</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="username-dialog" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="userNameModal" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">  
@@ -40,7 +62,7 @@
         <h3 class="col-12" id="rte-remain"></h3>
     </div>
 
-    <div class="container position-absolute top-0 start-0 m-0 col-2 justify-content-center text-center user-selection">
+    <div class="container position-absolute top-0 start-0 m-0 col-2 justify-content-center text-center user-display">
         <h4 class="col-12">Currently Playing:</h4>
         <h6 class="col-12" id="username-display"></h6>
         <button class="col-6 mt-1 user-button" id="reset">Reset</button>

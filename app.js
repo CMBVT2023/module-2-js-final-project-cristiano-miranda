@@ -112,7 +112,7 @@ class Timer {
         }, 1000);
     };
 
-    // Disables the powerup timer and sets the powerup booleans to false, showing that powerups are current deactivated. 
+    // Disables the powerup timer and sets the powerup booleans to false, showing that power ups are current deactivated. 
     clearPowerUp() {
         // Disables the 1 second powerup counter loop
         clearInterval(this._powerUpCounter);
@@ -1027,43 +1027,60 @@ class User {
         this._loadHTMLElements();
         this._loadDefaultEventListeners()
 
-        this._toggleUserNameMenu(false);
+        this._toggleUserSelectionMenu();
     }
 
     _loadHTMLElements() {
-        this._userNameModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('username-dialog'));
+        this._userCreationModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('username-dialog'));
         this._userNameDisplay = document.getElementById('username-display')
 
         this._userNameBtn = document.getElementById('username-set');
         this._userNameTextBox = document.getElementById('username-text')
+
+
+        this._userSelectionModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('user-selector-dialog'));
+        this._createUserBtn = document.getElementById('create-new-user');
     }
 
     _loadDefaultEventListeners() {
         this._userNameBtn.addEventListener('click', this._setUserName.bind(this))
-        this._userNameDisplay.addEventListener('click', this._toggleUserNameMenu.bind(this))
+        this._userNameDisplay.addEventListener('click', this._toggleUserSelectionMenu.bind(this))
+
+        this._createUserBtn.addEventListener('click', this._toggleUserCreationMenu.bind(this))
     }
 
     _capitalizeName(value) {
         return value[0].toUpperCase() + value.slice(1, value.length)
     }
 
-    _toggleUserNameMenu(value) {
+    _toggleUserSelectionMenu(value) {
         if (value) {
-            let userResult = confirm("Warning! Changing your name will reset your current game\'s progress.")
+            let userResult = confirm("Warning! Changing your user will reset your current game\'s progress.")
             if (userResult) {
                 this._game.haltGame();
-                this._userNameModal.toggle();
+                this._userSelectionModal.show();
             }
         } else {
-            this._userNameModal.toggle();
+                this._userSelectionModal.show();
         }
+    }
+
+    _selectUser() {
+
+    }
+
+    _toggleUserCreationMenu(value) {
+        this._userSelectionModal.hide();
+        this._userNameTextBox.value = ``;
+        this._userCreationModal.show();
     }
 
     _setUserName() {
         let userName = this._userNameTextBox.value.toLowerCase()
         if (userName != '') {
             userName = this._capitalizeName(userName);
-            this._userNameModal.toggle();
+            this._userSelectionModal.hide();
+            this._userCreationModal.hide();
             this._displayUserName(userName);
             this._game.startGame();
         } else {

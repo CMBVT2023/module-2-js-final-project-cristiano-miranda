@@ -14,7 +14,26 @@ html, body {
     min-width: 500px;
 }
 
-.user-selection, .info-section {
+.main-game-colors {
+    background-color: #553311;
+    color: #eecc77;
+}
+
+#user-list {
+    min-height: 150px;
+    max-height: 200px;
+    overflow-y: scroll;
+    width: 200px;
+    margin-bottom: 50px;
+    background-color:#DD9955;
+}
+
+.user-list-item {
+    display: flex;
+    justify-content: space-between;
+}
+
+.user-display, .info-section {
     background-color: #553311;
     color: #eecc77;
     border-radius: 20px;
