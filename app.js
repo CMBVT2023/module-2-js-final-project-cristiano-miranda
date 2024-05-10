@@ -11,69 +11,69 @@ class Timer {
 
         // Function call that will load all HTML elements related to the timers.
         this._loadHTMLElements();
-    }
-    
+    };
+
     // Loads all HTML elements related to the timer.
     _loadHTMLElements() {
         this._timeElapsedDisplay = document.getElementById('time-elapsed');
 
         this._powerUpTimeDisplay = document.getElementById('powerup-time');
-    }
+    };
 
     // Updates the timer element with the current game time elapsed 
     _displayElapsedTime() {
         // If the freeze time powerup is active, then this timer will not update until said powerup gets disabled
         if (this._freezeTime != true) {
-            this._timeElapsedDisplay.innerText = `${this.convertTime(this.totalTime())}`
-        }
-    }
+            this._timeElapsedDisplay.innerText = `${this.convertTime(this.totalTime())}`;
+        };
+    };
 
     // Updates the powerup timer with the remaining time for the currently active powerup.
     // // The parameter signifies how long the powerup should last.
     _powerUpElapsedTime(time) {
         // Updates the powerup time remaining
-        this._powerUpTimeDisplay.innerText = `${time - this.powerUpCurrentTime()}`
-        
+        this._powerUpTimeDisplay.innerText = `${time - this.powerUpCurrentTime()}`;
+
         // Checks if the powerup has reached the time limit passed in as a parameter,
         // if so then call the function to stop the powerup timer.
         if (this.powerUpCurrentTime() >= time) {
             this.stopPowerUpTimer();
-        }
-    }
+        };
+    };
 
     // Clears the timer display resetting its display back to 0
     clearTimerDisplay() {
         this._timeElapsedDisplay.innerText = `00:00`;
-    }
+    };
 
     // Returns the value for the powerUpTimerActive boolean.
     get powerUpTimerActive() {
         return this._powerUpTimerActive;
-    }
+    };
 
     // Returns the total elapsed game time, the amount of time from the games start subtracted by the amount of time the freeze ability was active,
     // this value is returned in seconds. 
     totalTime() {
         return Math.floor((Date.now() - this._gameStartTime) / 1000) - this._frozenTime;
-    }
+    };
 
     // Sets the current time when the functions is called to the powerup timer's start time,
     // and sets the powerUpTimerActive variable to true
     powerUpSetTime() {
         this._powerUpStartTime = Date.now();
         this._powerUpTimerActive = true;
-    }
+    };
 
     // Returns the amount of elapsed time has pasted since a powerup has activated in seconds
     powerUpCurrentTime() {
         return Math.floor((Date.now() - this._powerUpStartTime) / 1000);
-    }
+    };
 
     // Disables the powerup timer and sets the sets the powerUpTimerActive variable to false
     stopPowerUpTimer() {
         clearInterval(this._powerUpCounter);
         this._powerUpTimerActive = false;
-    }
+    };
 
     // Calls the function to sets the powerup's starting time,
     // displays the amount of time the powerup will last through the parameter passed in,
@@ -83,7 +83,7 @@ class Timer {
         this.powerUpSetTime();
         this._powerUpTimeDisplay.innerText = `${time}`
         this._powerUpCounter = setInterval(this._powerUpElapsedTime.bind(this, time), 1000);
-    }
+    };
 
     // Activates the freeze time powerup.
     // // The parameter signifies how long the powerup should last.
@@ -95,7 +95,7 @@ class Timer {
         this._freezeTime = true;
 
         // Displays the amount of time the powerup will last through the parameter passed in
-        this._powerUpTimeDisplay.innerText = `${time}`
+        this._powerUpTimeDisplay.innerText = `${time}`;
 
         // Creates a loop that will iterate every second.
         this._powerUpCounter = setInterval(() => {
@@ -108,9 +108,9 @@ class Timer {
             // If so, set the freeze time to false to signify that the time freeze powerup is deactivated.
             if (this.powerUpCurrentTime() >= time) {
                 this._freezeTime = false;
-            }
-        }, 1000)
-    }
+            };
+        }, 1000);
+    };
 
     // Disables the powerup timer and sets the powerup booleans to false, showing that powerups are current deactivated. 
     clearPowerUp() {
@@ -120,7 +120,7 @@ class Timer {
         // Sets the powerup booleans to false
         this._powerUpTimerActive = false;
         this._freezeTime = false;
-    }
+    };
 
     // Disables the game's main timer
     timerStop() {
@@ -128,7 +128,7 @@ class Timer {
         clearInterval(this._timerCounter);
         // Calls the function to reset the display.
         this.clearTimerDisplay();
-    }
+    };
 
     // Enables the game's main timer
     timerStart() {
@@ -136,7 +136,7 @@ class Timer {
         this._timerReset();
         // Creates the 1 second timer counter loop.
         this._timerCounter = setInterval(this._displayElapsedTime.bind(this), 1000);
-    }
+    };
 
     // Resets the variables needed for the game's main timer
     _timerReset() {
@@ -146,7 +146,7 @@ class Timer {
         this._frozenTime = 0;
         // Resets the timer's display
         this.clearTimerDisplay();
-    }
+    };
 
     // Converts the amount of seconds passed in to minutes and returns the newly calculated time in a stopwatch time format, 00:00.
     // // The parameter passed in is the amount of seconds to be converted.
@@ -158,7 +158,7 @@ class Timer {
         // Initializes variables that will store the final seconds and minutes after they are formatted
         let secondsDisplay;
         let minutesDisplay;
-        
+
         // Checks if minutes is greater than ten,
         // If so, set the minutesDisplay variable equal to minutes
         // Else, it will append a 0 to the front of minutes and then set to the minutesDisplay variable.
@@ -166,28 +166,28 @@ class Timer {
             minutesDisplay = `${minutes}`
         } else {
             minutesDisplay = `0${minutes}`;
-        }
+        };
 
         // Checks if seconds is greater than ten,
         // If so, set the secondsDisplay variable equal to seconds
         // Else, it will append a 0 to the front of seconds and then set to the secondsDisplay variable.
         if (seconds >= 10) {
-            secondsDisplay =  `${seconds}`
+            secondsDisplay = `${seconds}`
         } else {
-            secondsDisplay =  `0${seconds}`;
-        }
+            secondsDisplay = `0${seconds}`;
+        };
 
         // Returns the minutes in the proper time display format.
         return `${minutesDisplay}:${secondsDisplay}`
-    }
-}
+    };
+};
 
 class RealTimeEvent {
     constructor() {
         // Initializes the variables for the enemy RTE
         this._enemyHealth = 0;
         this._enemyAlive;
-        
+
         // Initializes the variables for the cookie trail RTE
         this._currentTrailCrumb = 0;
         this._cookieTrailComplete;
@@ -199,16 +199,16 @@ class RealTimeEvent {
 
         // Calls the function to load all the HTML elements related to the RTE events
         this._loadHTMLElements();
-    }
+    };
 
     // Loads all HTML elements related to the RTE events
     _loadHTMLElements() {
         this._rteContainer = document.getElementById('rte-spawn');
-        
+
         this._rteDisplay = document.getElementById('rte-display');
         this._rteEventDisplay = document.getElementById('current-rte');
         this._rteRemainingDisplay = document.getElementById('rte-remain');
-    }
+    };
 
     // Reduces the enemy's "health" and checks if the enemy is defeated
     _enemyDamage() {
@@ -219,11 +219,11 @@ class RealTimeEvent {
         if (this._enemyHealth <= 0) {
             this.clearRTE();
             return;
-        }
+        };
 
         // Updates the enemy's remaining health display if the enemy still has not been defeated yet.
         this._rteRemainingDisplay.innerText = this._enemyHealth;
-    }
+    };
 
     // Sets the next cookie in the cookie trail to active or clickable for the user.
     _nextCookieTrailCrumb() {
@@ -237,13 +237,13 @@ class RealTimeEvent {
         if (this._currentTrailCrumb < 10) {
             // If the value is still below 10,
             // Creates a new eventlistener on the next cookie in the cookie trail and calls the function to display the current info for the RTE.
-            const crumbEvent = this._cookieTrailList[this._currentTrailCrumb].addEventListener('click', this._nextCookieTrailCrumb.bind(this), {once: true})
+            const crumbEvent = this._cookieTrailList[this._currentTrailCrumb].addEventListener('click', this._nextCookieTrailCrumb.bind(this), { once: true });
             this.displayRTE(true, 2);
         } else if (this._currentTrailCrumb === 10) {
             // If the value is equal to 10, calls the function to clear the RTE.
             this.clearRTE();
-        }
-    }
+        };
+    };
 
     // Sets the next cookie in the cookie hunt to visible and clickable for the user.
     _nextCookieHuntCrumb() {
@@ -257,7 +257,7 @@ class RealTimeEvent {
         if (this._currentHuntCrumb < this._cookieHuntNum) {
             // If the value is below the total cookies in the cookie hunt,
             // Creates a new eventlistener on the next cookie in the cookie hunt.
-            const crumbEvent = this._cookieHuntList[this._currentHuntCrumb].addEventListener('click', this._nextCookieHuntCrumb.bind(this), {once: true})
+            const crumbEvent = this._cookieHuntList[this._currentHuntCrumb].addEventListener('click', this._nextCookieHuntCrumb.bind(this), { once: true });
             // Sets the current cookie in the cookie hunt to visible.
             this._cookieHuntList[this._currentHuntCrumb].style.visibility = 'visible';
             // Calls the function to display the current info for the RTE
@@ -265,23 +265,23 @@ class RealTimeEvent {
         } else if (this._currentHuntCrumb === this._cookieHuntNum) {
             // If the value is equal to the total cookies in the cookie hunt, calls the function to clear the RTE.
             this.clearRTE();
-        }
-    }
+        };
+    };
 
     // Returns the value of the enemyAlive boolean.
     get enemyAlive() {
         return this._enemyAlive;
-    }
+    };
 
     // Returns the value of the cookieTrailComplete boolean.
     get cookieTrailComplete() {
         return this._cookieTrailComplete;
-    }
+    };
 
     // Returns the value of the cookieHuntComplete boolean.
     get cookieHuntComplete() {
         return this._cookieHuntActive;
-    }
+    };
 
     // Creates the cookie hunt RTE
     summonCookieHunt() {
@@ -294,15 +294,15 @@ class RealTimeEvent {
         // Loops through based on the amount of cookies being added to the cookie hunt.
         for (let i = 0; i < this._cookieHuntNum; i++) {
             // On each loop, appends a new <img> tag with the cookie-crumb-hunt class to the cookie hunt div element.
-            this._cookieHuntElement.innerHTML += `<img src="./assets/Mini Cookie Asset.png" class="cookie-crumb-hunt"></img>`
-        }
+            this._cookieHuntElement.innerHTML += `<img src="./assets/Mini Cookie Asset.png" class="cookie-crumb-hunt"></img>`;
+        };
 
         // Appends the div element to the RTE HTML element.
         this._rteContainer.appendChild(this._cookieHuntElement);
 
         // Selects all cookie hunt img HTML elements in a nodeList.
         this._cookieHuntList = document.querySelectorAll('.cookie-crumb-hunt');
-        
+
         // Loops through based on the amount of cookies being added to the cookie hunt.
         for (let i = 0; i < this._cookieHuntNum; i++) {
             // Randomly decides the values for the top and left positioning of each cookie in the cookie hunt.
@@ -310,36 +310,36 @@ class RealTimeEvent {
             let randomLeft = Math.ceil(Math.random() * 70) + 5;
 
             // Sets the top and left style of a cookie to the randomized values.
-            this._cookieHuntList[i].style.top = `${randomTop}%`
-            this._cookieHuntList[i].style.left = `${randomLeft}%`
-        }
+            this._cookieHuntList[i].style.top = `${randomTop}%`;
+            this._cookieHuntList[i].style.left = `${randomLeft}%`;
+        };
 
         // Sets the cookieHuntActive boolean to true.
         this._cookieHuntActive = true;
 
         // Creates a new eventlistener on the first cookie in the cookie hunt.
-        const crumbEvent = this._cookieHuntList[0].addEventListener('click', this._nextCookieHuntCrumb.bind(this), {once: true})
+        const crumbEvent = this._cookieHuntList[0].addEventListener('click', this._nextCookieHuntCrumb.bind(this), { once: true });
         // Sets the first cookie in the cookie hunt to visible.
         this._cookieHuntList[0].style.visibility = 'visible';
         // Calls the function to display the current info for the RTE
         this.displayRTE(true, 3);
-    }
+    };
 
     // Creates the cookie trail RTE
     summonCookieTrail() {
         // Initializes a new HTML div element.
-        this._cookieTrailElement = document.createElement('div')
+        this._cookieTrailElement = document.createElement('div');
 
         // Loops through based on the amount of cookies being added to the cookie trail.
         for (let i = 0; i < 10; i++) {
             // On each loop, appends a new <img> tag with the cookie-crumb-trail class to the cookie trail div element.
             this._cookieTrailElement.innerHTML += `<img src="./assets/Mini Cookie Asset.png" class="cookie-crumb-trail"></img>`
-        }
+        };
         // Appends the div element to the RTE HTML element.
         this._rteContainer.appendChild(this._cookieTrailElement);
 
         // Selects all cookie hunt img HTML elements in a nodeList.
-        this._cookieTrailList = document.querySelectorAll('.cookie-crumb-trail')
+        this._cookieTrailList = document.querySelectorAll('.cookie-crumb-trail');
 
         // Initializes a variables with the initial starting position from the left.
         let leftNum = 2;
@@ -354,16 +354,16 @@ class RealTimeEvent {
 
             // Iterates the left positioning value by 10 each time.
             leftNum += 10;
-        }
+        };
 
         // Sets the cookieTrailComplete variable to false.
         this._cookieTrailComplete = false;
 
         // Creates a new eventlistener on the first cookie in the cookie trail.
-        const crumbEvent = this._cookieTrailList[0].addEventListener('click', this._nextCookieTrailCrumb.bind(this), {once: true});
+        const crumbEvent = this._cookieTrailList[0].addEventListener('click', this._nextCookieTrailCrumb.bind(this), { once: true });
         // Calls the function to display the current info for the RTE
         this.displayRTE(true, 2);
-    }
+    };
 
     summonEnemy() {
         // Initializes a new HTML div element.
@@ -395,7 +395,7 @@ class RealTimeEvent {
 
         // Calls the function to display the current info for the RTE
         this.displayRTE(true, 1);
-    }
+    };
 
     // Clears the any RTE
     clearRTE() {
@@ -417,7 +417,7 @@ class RealTimeEvent {
 
         // Calls the function to display the current RTE, but passes in a parameter that instead disables it.
         this.displayRTE(false);
-    }
+    };
 
     // Displays information about the currently active RTE or clears the currently active RTE from being displayed.
     // // Parameter one is a boolean that determines if the RTE will display or clear information, and two is the value that specifies which RTE to display.
@@ -435,28 +435,28 @@ class RealTimeEvent {
                     this._rteEventDisplay.innerText = 'Enemy Health Remaining:'
                     this._rteRemainingDisplay.innerText = this._enemyHealth;
                     break;
-                }
+                };
                 case 2: {
                     // If currentEvents is equal to two, sets the text of the HTML element to show the cookie trail's remaining cookies. 
                     this._rteEventDisplay.innerText = 'Cookie Trail Crumbs Remaining:'
                     this._rteRemainingDisplay.innerText = 10 - this._currentTrailCrumb;
                     break;
-                }
+                };
                 case 3: {
                     // If currentEvents is equal to three, sets the text of the HTML element to show the cookie hunt's remaining cookies. 
                     this._rteEventDisplay.innerText = 'Cookie Hunt Crumbs Remaining:'
                     this._rteRemainingDisplay.innerText = this._cookieHuntNum - this._currentHuntCrumb;
                     break;
-                }
-            }
+                };
+            };
         } else {
             // If the passed in parameter is false, sets the RTE html element to hidden and sets the text within equal to an empty string.
             this._rteDisplay.style.visibility = 'hidden';
             this._rteEventDisplay.innerText = ``;
             this._rteRemainingDisplay.innerText = ``;
-        }
-    }
-}
+        };
+    };
+};
 
 class CookieCrumb {
     constructor() {
@@ -468,18 +468,18 @@ class CookieCrumb {
     // Returns the value of currentCookies
     get currentCookies() {
         return this._currentCookies;
-    }
+    };
 
     // Returns the value of totalClicks
     get totalClicks() {
         return this._totalClicks;
-    }
+    };
 
     // Increases the value of currentCookies by the number passed in each time it is called.
     // // The parameter is the value that currentCookies will be increased by.
     increaseCookies(value) {
         this._currentCookies += value;
-    }
+    };
 
     // Increments the value of total by one each time it is called.
     increaseClicks() {
@@ -489,20 +489,20 @@ class CookieCrumb {
     // Increases the value of current cookies by a random amount.
     randomIncrease() {
         this._currentCookies += Math.ceil(Math.random() * 25);
-    }
+    };
 
     // Decreases currentCookies by the value passed in.
     // // Parameter is the value that currentCookies will decrease by.
     powerUp(cost) {
         this._currentCookies -= cost;
-    }
-    
+    };
+
     // Sets the variables for currentCookies and totalClicks to 0.
     scoreReset() {
         this._currentCookies = 0
         this._totalClicks = 0;
-    }
-}
+    };
+};
 
 class Storage {
     // Loads the user's previous high score from localStorage.
@@ -517,7 +517,7 @@ class Storage {
         } else {
             // Else, the currentHighScore variable is set equal to the value.
             currentHighScore = +localStorage.getItem('highScore');
-        }
+        };
 
         // Returns the value of currentHighScore variable.
         return currentHighScore;
@@ -534,7 +534,7 @@ class Storage {
             localStorage.setItem('highScore', currentScore);
         };
     };
-}
+};
 
 class Game {
     constructor() {
@@ -553,7 +553,7 @@ class Game {
         this._holdEnabled = false;
         this._powerUpSuperClickActive = false;
         this._powerUpActive = false;
-        
+
         // Initializes a variable that stores when a random event will occur, based on the user's total clicks.
         this._randomEventClicks = 0;
 
@@ -573,7 +573,7 @@ class Game {
 
         // Loads the user's previous high score in the info display.
         this._loadHighScoreDisplay();
-    }
+    };
 
     // Loads all necessary HTML elements for the game to utilize.
     _loadHTMLElements() {
@@ -585,7 +585,7 @@ class Game {
         this._currentHighScoreDisplay = document.getElementById('highest-score');
         this._currentCookiesInfo = document.getElementById('current-cookies');
         this._totalClicksInfo = document.getElementById('total-clicks');
-        
+
         // Elements involved with the power ups within the game.
         this._MainPowerUpDisplay = document.getElementById('powerup-display');
         this._currentPowerUpDisplay = document.getElementById('current-powerup');
@@ -598,7 +598,7 @@ class Game {
 
         // Element involved with manually resetting the display.
         this._resetBtn = document.getElementById('reset');
-    }
+    };
 
     // Loads the default event listeners for the game.
     _loadDefaultEventListeners() {
@@ -609,46 +609,22 @@ class Game {
         this._freezeTimeBtn.addEventListener('click', this._powerUpPreCheck.bind(this, 'freeze-time'))
 
         // Event listener associated with manually resetting the game.
-        this._resetBtn.addEventListener('click', this.resetGame.bind(this), {once: true});
-    }
+        this._resetBtn.addEventListener('click', this.resetGame.bind(this), { once: true });
+    };
 
-    // Displays the User's previous high score.
-    _loadHighScoreDisplay() {
-        // Calls the function convertTime, found in the timer object, and converts the high score acquired from the Storage class into the high score display.
-        this._currentHighScoreDisplay.innerText = this._timer.convertTime(Storage.loadHighScore());
-    }
+    // All methods below are related to the RTEs portion of the game.
 
-    // Increments the user's cookies and total clicks and updates the scoreboard afterwards.
-    _userClick() {
-        // Calls the function that increase total clicks
-        this._cookie.increaseClicks();
-        // Calls the function that increase total clicks and passes in the current value from the cookieCrumbValue
-        this._cookie.increaseCookies(this._cookieCrumbValue);
-
-        // Calls the function that updates the scoreboard
-        this._updateScoreBoard();
-    }
-
-    // Displays the currently active power up
-    // // Parameter is the string that contains the name of the currently active power up 
-    _displayPowerUp(powerUp) {
-        // Sets the power up display inner text to a string that shows the currently active power up
-        this._currentPowerUpDisplay.innerText = `${powerUp} Currently Active`;
-        // Makes the power up display element visible to the user.
-        this._MainPowerUpDisplay.style.visibility = 'visible';
-    }
+    // Returns if any of the three RTEs are currently active.
+    _eventActive() {
+        return (this._eventActiveEnemy || this._eventActiveHunt || this._eventActiveTrail);
+    };
 
     // Calculates when an RTE will occur
     _eventClickCalculator() {
         // Sets the randomEventClicks equal to a random amount
         // // This amount is based on the current value of the user's total clicks.
         this._randomEventClicks = Math.ceil(Math.random() * 50) + this._cookie.totalClicks + 30;
-    }
-
-    // Returns if any of the three RTEs are currently active.
-    _eventActive() {
-        return (this._eventActiveEnemy || this._eventActiveHunt || this._eventActiveTrail);
-    }
+    };
 
     // Randomly activates one of the three potential RTEs.
     _activateEvent() {
@@ -663,50 +639,80 @@ class Game {
         this._brokenCookieCrumb.style.visibility = 'visible';
 
         // Checks to see the value of num.
-        switch(num) {
+        switch (num) {
             case 1: {
                 // If num = 1, summon the enemy RTE event and set the enemy RTE boolean to true.
                 this._rte.summonEnemy();
                 this._eventActiveEnemy = true;
                 break;
-            }
+            };
             case 2: {
                 // If num = 2, summon the cookie trail RTE event and set the cookie trail RTE boolean to true.
                 this._rte.summonCookieTrail();
                 this._eventActiveTrail = true;
                 break;
-            }
+            };
             case 3: {
                 // If num = 3, summon the cookie hunt RTE event and set the cookie hunt RTE boolean to true.
                 this._rte.summonCookieHunt();
                 this._eventActiveHunt = true;
                 break;
-            }
-        }
+            };
+        };
 
         // Calls the function that checks when the current event is completed.
         this._eventCheck();
-    }
+    };
 
-    // Updates the scoreboard display
-    _updateScoreBoard() {
-        // Sets the total clicks and total cookies display values
-        this._currentCookiesInfo.innerText = this._cookie.currentCookies;
-        this._totalClicksInfo.innerText = this._cookie.totalClicks;
+    // Resets all variables and methods related to the game's RTEs.
+    _eventReset() {
+        // Calls the RTE object's function to clear the currently active RTE.
+        this._rte.clearRTE();
 
-        // Checks if the total amount of cookies is achieved, currently set to 250.
-        if (this._cookie.currentCookies >= 250) {
-            // If the amount of cookies is achieved, 
-            // Call the storage object function to check if the user's acquired score is higher than their previous high score.
-            Storage.setHighScore(this._timer.totalTime());
-            // Calls the function to end the game.
-            this.endGame();
-        } else if (this._cookie.totalClicks === this._randomEventClicks && this._eventActive() != true) {
-            // Checks if the amount of total clicks reaches the amount needed to activate an RTE, and checks that an RTE is currently not active.
-            // If so, calls the function to activate the event.
-            this._activateEvent();
-        }
-    }
+        // Sets the main cookie crumb to visible and hides the broken cookie crumb from the user.
+        this._cookieCrumb.style.visibility = 'visible';
+        this._brokenCookieCrumb.style.visibility = 'hidden';
+
+        // Sets all RTE active booleans to false.
+        this._eventActiveEnemy = false;
+        this._eventActiveTrail = false;
+        this._eventActiveHunt = false;
+
+        // Clears the event checking loop.
+        clearInterval(this._eventCounter);
+    };
+
+    // Checks when the user finishes the currently active event and then clears it.
+    _eventCheck() {
+        // Creates a loop using setInterval that will run every 250 milliseconds
+        this._eventCounter = setInterval(() => {
+            // Checks if the enemy event is active and if the RTE enemy alive variable is false,
+            // or checks if the cookie trail event is active and if the RTE cookieTrailComplete variable is true,
+            // or checks if the cookie hunt event is active and if the RTE cookieHuntActive variable is false
+            if ((this._eventActiveEnemy && this._rte.enemyAlive === false) || (this._eventActiveTrail && this._rte.cookieTrailComplete) || (this._eventActiveHunt && this._rte._cookieHuntActive === false)) {
+                // If any of the three conditions are true.
+
+                // Increases the user's current cookie amount by a random amount and updates the scoreboard to reflect the increase.
+                this._cookie.randomIncrease();
+                this._updateScoreBoard();
+
+                // Recalculates the next occurrence of an RTE using the user's current total clicks.
+                this._eventClickCalculator();
+
+                // Calls the reset event function to clear and reset the current RTE.
+                this._eventReset();
+            };
+        }, 250);
+    };
+
+    // All methods below are related to the power ups portion of the game.
+
+    // Calculates the price of each power up.
+    //  // Parameter is the initial cost of a powerup.
+    _powerUpPriceCalculator(baseCost) {
+        // Price is calculated based on the number of power ups purchased so far, each purchase adds an extra 75% cost to the base cost.
+        return Math.ceil(((this._powerUpNum * .75) * baseCost) + baseCost);
+    };
 
     // Displays the price of every power up
     _powerUpDisplayPrice() {
@@ -714,74 +720,16 @@ class Game {
         this._boostValuePriceDisplay.innerText = this._powerUpPriceCalculator(50);
         this._superClickPriceDisplay.innerText = this._powerUpPriceCalculator(30);
         this._freezeTimePriceDisplay.innerText = this._powerUpPriceCalculator(20);
-    }
+    };
 
-    // Calculates the price of each power up.
-    //  // Parameter is the initial cost of a powerup.
-    _powerUpPriceCalculator(baseCost) {
-        // Price is calculated based on the number of power ups purchased so far, each purchase adds an extra 75% cost to the base cost.
-        return Math.ceil(((this._powerUpNum * .75) * baseCost) + baseCost);
-    }
-
-    // Toggles a specific power up.
-    // // Parameter is the power up that is to be activated.
-    _powerUpToggle(powerUp) {
-        // Increments the total powerup purchased by one.
-        this._powerUpNum += 1;
-
-        // Checks the value of powerUp parameter.
-        switch (powerUp) {
-            case 'boost-value': {
-                // If the power up to be activated is boost value.
-
-                // Randomizes the amount of cookies collected on each click, either 2 or 3, and sets the cookieCrumbValue equal to this number.
-                let boostValue = Math.ceil(Math.random() * 2) + 1;
-                this._cookieCrumbValue = boostValue;
-                
-                // Calls the timer function to start timing for the power up.
-                this._timer.startPowerUpTimer(10);
-
-                // Calls the function to display the current power up.
-                this._displayPowerUp('Boost Value');
-                break;
-            }
-            case 'super-click': {
-                // If the power up to be activated is super click.
-
-                // Creates a event listener that will activate the super click power up upon the user's next click of the cookie crumb element.
-                this._cookieCrumb.addEventListener('click', this._powerUpSuperClickToggle.bind(this, true), {once: true});
-    
-                // Calls the timer function to start timing for the power up.
-                this._timer.startPowerUpTimer(15)
-
-                // Calls the function to display the current power up.
-                this._displayPowerUp('Super Click');
-                break;
-            }
-            case 'freeze-time': {
-                // If the power up to be activated is freeze time.
-                
-                // Calls the timer function to freeze the main timer and to activate and time the freeze time power up.
-                this._timer.freezeTimeCounter(10)
-
-                // Calls the function to display the current power up.
-                this._displayPowerUp('Freeze Time');
-                break;
-            }
-        }
-
-        // Calls the power up display price to recalculate the new power up costs.
-        this._powerUpDisplayPrice();
-
-        // Sets the powerUpActive boolean to true.
-        this._powerUpActive = true;
-
-        // Calls the update score board function to show the user's new cookie crumb count
-        this._updateScoreBoard();
-
-        // Calls the function that checks when the current power up has timed out.
-        this._powerUpCheck();
-    }
+    // Displays the currently active power up
+    // // Parameter is the string that contains the name of the currently active power up 
+    _displayPowerUp(powerUp) {
+        // Sets the power up display inner text to a string that shows the currently active power up
+        this._currentPowerUpDisplay.innerText = `${powerUp} Currently Active`;
+        // Makes the power up display element visible to the user.
+        this._MainPowerUpDisplay.style.visibility = 'visible';
+    };
 
     // Pre-checks if certain there are certain conditions met before activating a power up.
     // // Parameter is the power up the user wants to activate.
@@ -801,23 +749,23 @@ class Game {
                     // Set the powerup price to the value returned by the calculated price.
                     powerUpPrice = this._powerUpPriceCalculator(50);
                     break;
-                }
+                };
                 case 'super-click': {
                     // If the power up is the super click powerup
 
                     // Set the powerup price to the value returned by the calculated price.
                     powerUpPrice = this._powerUpPriceCalculator(30);
                     break;
-                }
+                };
                 case 'freeze-time': {
                     // If the power up is the freeze time powerup
 
                     // Set the powerup price to the value returned by the calculated price.
                     powerUpPrice = this._powerUpPriceCalculator(20);
                     break;
-                }
-            }
-            
+                };
+            };
+
             // Checks if the user has the necessary cookies to pay for the price of the power up. 
             if (powerUpPrice <= this._cookie.currentCookies) {
                 // If so, call the cookie function to remove the power up cost from the user's total cookies.
@@ -825,9 +773,69 @@ class Game {
 
                 // Call the function to toggle the user's desired power up.
                 this._powerUpToggle(powerUp);
-            }
-        }
+            };
+        };
     }
+
+    // Toggles a specific power up.
+    // // Parameter is the power up that is to be activated.
+    _powerUpToggle(powerUp) {
+        // Increments the total powerup purchased by one.
+        this._powerUpNum += 1;
+
+        // Checks the value of powerUp parameter.
+        switch (powerUp) {
+            case 'boost-value': {
+                // If the power up to be activated is boost value.
+
+                // Randomizes the amount of cookies collected on each click, either 2 or 3, and sets the cookieCrumbValue equal to this number.
+                let boostValue = Math.ceil(Math.random() * 2) + 1;
+                this._cookieCrumbValue = boostValue;
+
+                // Calls the timer function to start timing for the power up.
+                this._timer.startPowerUpTimer(10);
+
+                // Calls the function to display the current power up.
+                this._displayPowerUp('Boost Value');
+                break;
+            }
+            case 'super-click': {
+                // If the power up to be activated is super click.
+
+                // Creates a event listener that will activate the super click power up upon the user's next click of the cookie crumb element.
+                this._cookieCrumb.addEventListener('click', this._powerUpSuperClickToggle.bind(this, true), { once: true });
+
+                // Calls the timer function to start timing for the power up.
+                this._timer.startPowerUpTimer(15)
+
+                // Calls the function to display the current power up.
+                this._displayPowerUp('Super Click');
+                break;
+            }
+            case 'freeze-time': {
+                // If the power up to be activated is freeze time.
+
+                // Calls the timer function to freeze the main timer and to activate and time the freeze time power up.
+                this._timer.freezeTimeCounter(10)
+
+                // Calls the function to display the current power up.
+                this._displayPowerUp('Freeze Time');
+                break;
+            };
+        };
+
+        // Calls the power up display price to recalculate the new power up costs.
+        this._powerUpDisplayPrice();
+
+        // Sets the powerUpActive boolean to true.
+        this._powerUpActive = true;
+
+        // Calls the update score board function to show the user's new cookie crumb count
+        this._updateScoreBoard();
+
+        // Calls the function that checks when the current power up has timed out.
+        this._powerUpCheck();
+    };
 
     // Activates the super click power up.
     // // Parameter is a boolean that determines if the power up will be toggled on or off. 
@@ -846,15 +854,15 @@ class Game {
 
             // Sets the holdEnabled boolean to false.
             this._holdEnabled = false;
-        }
-    }
+        };
+    };
 
     // Activates the super click power up feature.
     _powerUpSuperClick() {
         // Checks if the holdEnabled boolean is true.
         if (this._holdEnabled) {
             // If the boolean is true.
-            
+
             // Calls the function to increase the user's current cookies.
             this._cookie.increaseCookies(this._cookieCrumbValue);
 
@@ -862,67 +870,9 @@ class Game {
             this._updateScoreBoard();
 
             // Creates a timeout that will recursively call this function once 250 milliseconds has passed.
-            setTimeout(() => {this._powerUpSuperClick()}, 250)
+            setTimeout(() => { this._powerUpSuperClick() }, 250);
         };
     };
-
-    // Checks when the user finishes the currently active event and then clears it.
-    _eventCheck() {
-        // Creates a loop using setInterval that will run every 250 milliseconds
-        this._eventCounter = setInterval(() => {
-            // Checks if the enemy event is active and if the RTE enemy alive variable is false,
-            // or checks if the cookie trail event is active and if the RTE cookieTrailComplete variable is true,
-            // or checks if the cookie hunt event is active and if the RTE cookieHuntActive variable is false
-            if ((this._eventActiveEnemy && this._rte.enemyAlive === false) || (this._eventActiveTrail && this._rte.cookieTrailComplete) || (this._eventActiveHunt && this._rte._cookieHuntActive === false)) {
-                // If any of the three conditions are true.
-                
-                // Increases the user's current cookie amount by a random amount and updates the scoreboard to reflect the increase.
-                this._cookie.randomIncrease();
-                this._updateScoreBoard();
-
-                // Recalculates the next occurrence of an RTE using the user's current total clicks.
-                this._eventClickCalculator();
-
-                // Calls the reset event function to clear and reset the current RTE.
-                this._eventReset();
-            }
-        }, 250)
-    }
-
-    // Checks when the currently active power up times out and then clears it.
-    _powerUpCheck() {
-        // Creates a loop using setInterval that will run every 1 second.
-        this._powerUpCounter = setInterval(() => {
-            // Checks if the powerUpActive boolean is true and if the timer's powerUpTimerActive boolean becomes false.
-            if (this._powerUpActive && this._timer.powerUpTimerActive === false) {
-                // If so the function to reset the power ups is called.
-                this._powerUpReset();
-            }
-        }, 1000)
-    }
-
-    // Resets all features of the game to prepare for a new play through.
-    _gameReset() {
-        // Calls the timer function to stop the timer from timing.
-        this._timer.timerStop();
-
-        // Sets the powerUpNum back to zero and resets any currently active RTEs or power ups.
-        this._powerUpNum = 0;
-        this._powerUpReset();
-        this._eventReset();
-
-        // Calls the cookie object's function to reset the total clicks and current cookies.
-        this._cookie.scoreReset();
-
-        // Calls the function to recalculate the power ups cost, which will be the base cost.
-        this._powerUpDisplayPrice();        
-
-        // Updates the scoreboard to reflect the reset values.
-        this._updateScoreBoard();
-
-        // Call the function to load the user's current high score from local storage.
-        this._loadHighScoreDisplay();
-    }
 
     // Resets all variables and methods related to the game's power ups.
     _powerUpReset() {
@@ -944,25 +894,83 @@ class Game {
         // Sets the power up display to hidden and sets its innerText to an empty string.
         this._MainPowerUpDisplay.style.visibility = 'hidden';
         this._currentPowerUpDisplay.innerText = ``;
-    }
+    };
 
-    // Resets all variables and methods related to the game's RTEs.
-    _eventReset() {
-        // Calls the RTE object's function to clear the currently active RTE.
-        this._rte.clearRTE();
+    // Checks when the currently active power up times out and then clears it.
+    _powerUpCheck() {
+        // Creates a loop using setInterval that will run every 1 second.
+        this._powerUpCounter = setInterval(() => {
+            // Checks if the powerUpActive boolean is true and if the timer's powerUpTimerActive boolean becomes false.
+            if (this._powerUpActive && this._timer.powerUpTimerActive === false) {
+                // If so the function to reset the power ups is called.
+                this._powerUpReset();
+            }
+        }, 1000);
+    };
 
-        // Sets the main cookie crumb to visible and hides the broken cookie crumb from the user.
-        this._cookieCrumb.style.visibility = 'visible';
-        this._brokenCookieCrumb.style.visibility = 'hidden';
+    // All methods below are related to score and displaying information of the game.
 
-        // Sets all RTE active booleans to false.
-        this._eventActiveEnemy = false;
-        this._eventActiveTrail = false;
-        this._eventActiveHunt = false;
+    // Increments the user's cookies and total clicks and updates the scoreboard afterwards.
+    _userClick() {
+        // Calls the function that increase total clicks
+        this._cookie.increaseClicks();
+        // Calls the function that increase total clicks and passes in the current value from the cookieCrumbValue
+        this._cookie.increaseCookies(this._cookieCrumbValue);
 
-        // Clears the event checking loop.
-        clearInterval(this._eventCounter);
-    }
+        // Calls the function that updates the scoreboard
+        this._updateScoreBoard();
+    };
+
+    // Displays the User's previous high score.
+    _loadHighScoreDisplay() {
+        // Calls the function convertTime, found in the timer object, and converts the high score acquired from the Storage class into the high score display.
+        this._currentHighScoreDisplay.innerText = this._timer.convertTime(Storage.loadHighScore());
+    };
+
+    // Updates the scoreboard display
+    _updateScoreBoard() {
+        // Sets the total clicks and total cookies display values
+        this._currentCookiesInfo.innerText = this._cookie.currentCookies;
+        this._totalClicksInfo.innerText = this._cookie.totalClicks;
+
+        // Checks if the total amount of cookies is achieved, currently set to 250.
+        if (this._cookie.currentCookies >= 250) {
+            // If the amount of cookies is achieved, 
+            // Call the storage object function to check if the user's acquired score is higher than their previous high score.
+            Storage.setHighScore(this._timer.totalTime());
+            // Calls the function to end the game.
+            this.endGame();
+        } else if (this._cookie.totalClicks === this._randomEventClicks && this._eventActive() != true) {
+            // Checks if the amount of total clicks reaches the amount needed to activate an RTE, and checks that an RTE is currently not active.
+            // If so, calls the function to activate the event.
+            this._activateEvent();
+        };
+    };
+
+    // All methods below are related to starting, resetting, and stopping the game.
+
+    // Resets all features of the game to prepare for a new play through.
+    _gameReset() {
+        // Calls the timer function to stop the timer from timing.
+        this._timer.timerStop();
+
+        // Sets the powerUpNum back to zero and resets any currently active RTEs or power ups.
+        this._powerUpNum = 0;
+        this._powerUpReset();
+        this._eventReset();
+
+        // Calls the cookie object's function to reset the total clicks and current cookies.
+        this._cookie.scoreReset();
+
+        // Calls the function to recalculate the power ups cost, which will be the base cost.
+        this._powerUpDisplayPrice();
+
+        // Updates the scoreboard to reflect the reset values.
+        this._updateScoreBoard();
+
+        // Call the function to load the user's current high score from local storage.
+        this._loadHighScoreDisplay();
+    };
 
     // Ends the currently active game, only occurs upon the user reaching the necessary cookie amount.
     endGame() {
@@ -974,13 +982,13 @@ class Game {
 
         // Calls the method to start the game.
         this.startGame();
-    }
+    };
 
     // Halts the currently running game, only occurs when the user chooses to switch their name/account.
     haltGame() {
         // Calls the function to reset all of the game's methods and variables.
         this._gameReset();
-    }
+    };
 
     // Quickly resets the currently running game, only occurs when the user clicks the reset button.
     resetGame() {
@@ -989,13 +997,13 @@ class Game {
 
         // Reinitialize the reset button's eventlistener after a second has passed.
         // // The reset buttons event listener can only be trigger once before needing to be reinitialized to prevent the user from calling this function multiple times.  
-        setTimeout(() => {            
-            this._resetBtn.addEventListener('click', this.resetGame.bind(this, false), {once: true});
+        setTimeout(() => {
+            this._resetBtn.addEventListener('click', this.resetGame.bind(this, false), { once: true });
         }, 1000);
 
         // Calls the method to start the game.
         this.startGame();
-    }
+    };
 
     // Begin the games main timer and calculates the needed total clicks for RTEs to activate.
     startGame() {
@@ -1005,8 +1013,7 @@ class Game {
         // Calls the function to calculate when an RTE event will occur based on the user's total clicks.
         // // In this case, upon the game starting, the event will occur from 30-80 clicks.
         this._eventClickCalculator();
-    }
-
+    };
 };
 
 class User {
@@ -1053,15 +1060,15 @@ class User {
     }
 
     _setUserName() {
-        let userName = this._userNameTextBox.value.toLowerCase() 
+        let userName = this._userNameTextBox.value.toLowerCase()
         if (userName != '') {
-            userName = this._capitalizeName(userName); 
+            userName = this._capitalizeName(userName);
             this._userNameModal.toggle();
             this._displayUserName(userName);
             this._game.startGame();
         } else {
-            confirm('Please Enter a Valid User Name');   
-        }   
+            confirm('Please Enter a Valid User Name');
+        }
     }
 
     _displayUserName(value) {
