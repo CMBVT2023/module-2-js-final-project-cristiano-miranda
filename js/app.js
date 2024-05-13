@@ -4,7 +4,10 @@ import * as rteModule from "./rte.js";
 import * as cookiecrumbModule from "./cookiecrumb.js";
 import * as storageModule from "./storage.js";
 
-class Game {
+// TODO: Move the display high score to the GameUI class
+//      Find a way for the PlayThrough class to alert the GameUI class is finished to have it trigger the game over modal.
+
+class PlayThrough {
     constructor() {
         // Initializes new objects for the game to utilize.
         this._cookie = new cookiecrumbModule.CookieCrumb();
@@ -484,13 +487,32 @@ class Game {
     };
 };
 
-class User {
-    constructor() {
-        this._game = new Game();
+function User(name) {
+    this.userName = name;
+    this.highestScore = 0;
+    this.pastScores = [];
+}
 
-        this._userName;
-        this._userScore;
-        this._userHighestScore;
+/* User pseudocode:
+    Start by pulling the array of user objects from storage.
+    Iterate through the array and create a list-group-item for each user and have their userName value as the text in said list-group-item.
+        Check if there is an instance of there being no users currently in the localStorage and if this occurs simply load nothing in the list-group
+    When creating each list-group-item, assign numerical value starting from 0 to each radio button's value.
+    Using this value, once the user has selected their user, utilize this as the index for their user in the array and grab their user object and set it to the currentlyActiveUser.
+    From here, load the userName and highestScore into their respective displays and wait for user to either finish the game or see if they wish to switch their users.
+
+    If they finish the game, display their previous highScore and past five scores, then shift their achieved score to the array and remove its last element,
+    and if necessary, change their highScore value to their achieved score.
+
+    If they choose to switch users, set the currentlyActiveUser to empty and toggle the user selection modal and recall the method to fill the list-group.
+*/
+
+class GameUI {
+    constructor() {
+        // this._mainGame = new PlayThrough();
+
+        this._currentUser;
+        this._currentUserIndex;
 
         this._loadHTMLElements();
         this._loadDefaultEventListeners()
@@ -499,42 +521,81 @@ class User {
     }
 
     _loadHTMLElements() {
-        this._userCreationModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('username-dialog'));
-        this._userNameDisplay = document.getElementById('username-display')
-
-        this._userNameBtn = document.getElementById('username-set');
-        this._userNameTextBox = document.getElementById('username-text')
-
-
         this._userSelectionModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('user-selector-dialog'));
         this._createUserBtn = document.getElementById('create-new-user');
+
+        this._userListGroup = document.getElementById('user-list');
+        this._userSelectBtn = document.getElementById('user-select');
+
+
+
+
+        this._userCreationModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('username-dialog'));
+        this._userNameDisplay = document.getElementById('username-display');
+        this._userNameBtn = document.getElementById('username-set');
+        this._userNameTextBox = document.getElementById('username-text');
     }
 
     _loadDefaultEventListeners() {
+        this._createUserBtn.addEventListener('click', this._toggleUserCreationMenu.bind(this))
+        this._userSelectBtn.addEventListener('click', this._findSelectedUser.bind(this));
+
         this._userNameBtn.addEventListener('click', this._setUserName.bind(this))
         this._userNameDisplay.addEventListener('click', this._toggleUserSelectionMenu.bind(this))
-
-        this._createUserBtn.addEventListener('click', this._toggleUserCreationMenu.bind(this))
     }
 
     _capitalizeName(value) {
         return value[0].toUpperCase() + value.slice(1, value.length)
     }
 
+    _displayUsers() {
+        let userList = storageModule.Storage.getUserList();
+        console.log(userList);
+
+
+        this._userListGroup.innerHTML = ``;
+
+        for (let i in userList) {
+            this._userListGroup.innerHTML += `<label class="list-group-item fw-bold bg-transparent bg-gradient user-list-item"><input type="radio" name="user" value="${i}"> ${userList[i].userName}</label>`;
+        }
+    }
+
+    _findSelectedUser() {
+        let radios = this._userListGroup.querySelectorAll('input');
+
+        for (let i = 0; i < radios.length; i++) {
+            if (radios[i].checked) {
+                this._currentUserIndex = i;
+                this._setActiveUser(false);
+                return;
+            }
+        }
+    }
+
+    _setActiveUser(value) {
+        let userList = storageModule.Storage.getUserList();
+        // Checks if the user is newly made, equates to true, or if it was a previous user, equates to false.
+        if (value) {
+            // Have this call the create new user function after checking that the user name is not already used.
+        } else {
+            this._currentUser = userList[this._currentUserIndex];
+        }
+
+        this._displayUserName(this._currentUser.userName);
+    }
+
     _toggleUserSelectionMenu(value) {
         if (value) {
             let userResult = confirm("Warning! Changing your user will reset your current game\'s progress.")
             if (userResult) {
-                this._game.haltGame();
+                this._mainGame.haltGame();
+                this._displayUsers();
                 this._userSelectionModal.show();
             }
         } else {
-                this._userSelectionModal.show();
+            this._displayUsers();
+            this._userSelectionModal.show();
         }
-    }
-
-    _selectUser() {
-
     }
 
     _toggleUserCreationMenu(value) {
@@ -543,6 +604,8 @@ class User {
         this._userCreationModal.show();
     }
 
+
+    // Rework this to create a new user instead
     _setUserName() {
         let userName = this._userNameTextBox.value.toLowerCase()
         if (userName != '') {
@@ -550,7 +613,7 @@ class User {
             this._userSelectionModal.hide();
             this._userCreationModal.hide();
             this._displayUserName(userName);
-            this._game.startGame();
+            this._mainGame.startGame();
         } else {
             confirm('Please Enter a Valid User Name');
         }
@@ -561,4 +624,4 @@ class User {
     }
 }
 
-const newUser = new User();
+const Begin = new GameUI();

@@ -28,4 +28,28 @@ export class Storage {
             localStorage.setItem('highScore', currentScore);
         };
     };
+
+    static setUserList(arr) {
+        localStorage.setItem('users', JSON.stringify(arr))
+    }
+
+    static getUserList() {
+        let list;
+
+        if (localStorage.getItem('users') === null) {
+            list = [];
+        } else {
+            list = JSON.parse(localStorage.getItem('users'))
+        };
+
+        return list;
+    };
+
+    static addUser(userObj) {
+        let list = this.getUserList();
+            
+        list.push(userObj)
+
+        this.setUserList(list);
+    }
 };
