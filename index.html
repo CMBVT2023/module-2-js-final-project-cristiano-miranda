@@ -48,6 +48,31 @@
         </div>
     </div>
 
+    <div class="modal fade" id="end-screen-dialog" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="endScreenModal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">  
+                <div class="'modal-header">
+                    <h4 class="modal-title text-center" id="endScreenModal">Game Over</h4>
+                </div>
+                <div class="modal-body text-center end-screen">
+                    <h5 id="end-screen-text"></h5>
+                    <div id="end-screen-scores">
+                        <div id="end-screen-previous-scores">
+                            <h5>Previous Scores:</h5>
+                        </div>
+                        <div id="end-screen-highscore-display">
+                            <h5 id="previous-highscore-text"></h5>
+                            <h6 id="game-score"></h6>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="container position-absolute top-0 start-50 translate-middle mt-5 row text-center justify-content-center" id="powerup-display">
         <h5 class="col-12" id="current-powerup"></h5>
         <h3 class="col-12" id="powerup-time"></h3>
@@ -105,6 +130,10 @@
 
     <div id="rte-spawn">
 
+    </div>
+
+    <div id="click-to-start">
+        
     </div>
 </body>
 

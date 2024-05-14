@@ -95,3 +95,37 @@ html, body {
 #rte-display, #powerup-display {
     width: 25%;
 }
+
+#click-to-start {
+    position: absolute;
+    top: 25%;
+    left: 50%;
+    width: 80%;
+    margin-left: -40%;
+    text-align: center;
+    visibility: hidden;
+}
+
+#click-to-start h1 {
+    font-weight: bold;
+    color: white;
+    font-size: 10rem;
+}
+
+#click-to-start h1:hover {
+    transform: scale(1.1);
+    cursor: pointer;
+    color: red;
+}
+
+.end-screen {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 60%;
+}
+
+#end-screen-scores {
+    display: flex;
+    justify-content: space-around;
+}
