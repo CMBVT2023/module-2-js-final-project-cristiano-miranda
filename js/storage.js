@@ -29,7 +29,7 @@ export class Storage {
         };
     };
 
-    static setUserList(arr) {
+    static _setUserList(arr) {
         localStorage.setItem('users', JSON.stringify(arr))
     }
 
@@ -50,6 +50,25 @@ export class Storage {
             
         list.push(userObj)
 
-        this.setUserList(list);
+        this._setUserList(list);
+    }
+
+    static updateUser(userObj, index) {
+        let list = this.getUserList();
+
+        list[index] = userObj;
+
+        this._setUserList(list);
+    }
+
+    static removeUser(index) {
+        let list = this.getUserList();
+
+        let profile = list.splice(index, 1);
+        let confirmation = confirm(`Are you sure you want to delete this profile?`)
+        
+        if(confirmation) {
+            this._setUserList(list);
+        }
     }
 };

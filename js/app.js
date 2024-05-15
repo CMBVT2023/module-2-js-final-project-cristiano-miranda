@@ -4,7 +4,13 @@ import * as rteModule from "./rte.js";
 import * as cookiecrumbModule from "./cookiecrumb.js";
 import * as storageModule from "./storage.js";
 
-// TODO: Move the display high score to the GameUI class
+// TODO: Move the display high score to the GameUI class and have it show the user's specific best time.
+// Add a total play time property and potentially make a previous high scores array, make this keep like 3 scores.
+// Rework the event check and the power up check to call the end power up and end event methods them selves, pass the main game class to them.
+
+
+// Alexander recommended that I keep my users are separate key:value pairs in the localStorage.
+// // Look into this one as it might be better optimization wise to store users separately instead of as objects in an array 
 
 class PlayThrough {
     constructor(ui) {
@@ -444,7 +450,7 @@ class PlayThrough {
         // Calls the function to reset all of the game's methods and variables.
         this._gameReset();
 
-        this._gameUI.gameOver();
+        this._gameUI.gameOver(this._timer.totalTime());
     };
 
     // Halts the currently running game, occurs when the user chooses to switch their name/account or hit the reset button.
@@ -470,30 +476,16 @@ function User(name) {
     this.pastScores = [];
 }
 
-/* User pseudocode:
-        Start by pulling the array of user objects from storage.
-        Iterate through the array and create a list-group-item for each user and have their userName value as the text in said list-group-item.
-    Check if there is an instance of there being no users currently in the localStorage and if this occurs simply load nothing in the list-group
-        When creating each list-group-item, assign numerical value starting from 0 to each radio button's value.
-        Using this value, once the user has selected their user, utilize this as the index for their user in the array and grab their user object and set it to the currentlyActiveUser.
-    From here, load the userName and highestScore into their respective displays and wait for user to either finish the game or see if they wish to switch their users.
-
-    If they finish the game, display their previous highScore and past five scores, then shift their achieved score to the array and remove its last element,
-    and if necessary, change their highScore value to their achieved score.
-
-    If they choose to switch users, set the currentlyActiveUser to empty and toggle the user selection modal and recall the method to fill the list-group.
-*/
-
 class GameUI {
     constructor() {
         this._currentUser;
-        this._currentUserIndex = 50;
+        this._currentUserIndex;
+        this._newUser = false;
 
         this._loadHTMLElements();
         this._loadDefaultEventListeners()
 
-        // this._toggleUserSelectionMenu(false);
-        this._loadEndScreenModal(500, false);
+        this._toggleUserSelectionMenu(false);
 
         this._mainGame = new PlayThrough(this);
     }
@@ -504,6 +496,7 @@ class GameUI {
 
         this._userListGroup = document.getElementById('user-list');
         this._userSelectBtn = document.getElementById('user-select');
+        this._userDeleteBtn = document.getElementById('user-remove')
 
         this._startingContainer = document.getElementById('click-to-start');
 
@@ -518,16 +511,20 @@ class GameUI {
 
         this._endScreenModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('end-screen-dialog'));
         this._endScreenMainText = document.getElementById('end-screen-text');
+        this._endScreenFinalScore = document.getElementById('end-screen-final-score');
         this._endScreenPreviousScoresDisplay = document.getElementById('end-screen-previous-scores');
         this._endScreenHighScoreText = document.getElementById('previous-highscore-text');
         this._endScreenUserScore = document.getElementById('game-score');
+        this._endScreenPlayAgainBtn = document.getElementById('play-again');
+        this._endScreenChangeUserBtn = document.getElementById('change-user');
     }
 
     _loadDefaultEventListeners() {
-        this._createUserBtn.addEventListener('click', this._toggleUserCreationMenu.bind(this))
+        this._createUserBtn.addEventListener('click', this._toggleUserCreationMenu.bind(this));
         this._userSelectBtn.addEventListener('click', this._findSelectedUser.bind(this));
+        this._userDeleteBtn.addEventListener('click', this._deleteSelectedUser.bind(this));
 
-        this._userNameBtn.addEventListener('click', this._setUserName.bind(this))
+        this._userNameBtn.addEventListener('click', this._createNewUser.bind(this))
         this._userNameDisplay.addEventListener('click', this._toggleUserSelectionMenu.bind(this))
 
         // Event listener associated with manually resetting the game.
@@ -553,8 +550,30 @@ class GameUI {
 
         this._userListGroup.innerHTML = ``;
 
-        for (let i in userList) {
-            this._userListGroup.innerHTML += `<label class="list-group-item fw-bold bg-transparent bg-gradient user-list-item"><input type="radio" name="user"> ${userList[i].userName}</label>`;
+        if (userList.length !== 0) {
+            this._userListGroup.style.display = 'block';
+            this._userSelectBtn.style.display = 'block';
+            this._userDeleteBtn.style.display = 'block';
+            for (let i in userList) {
+                this._userListGroup.innerHTML += `<label class="list-group-item fw-bold bg-transparent bg-gradient user-list-item"><input type="radio" name="user"> ${userList[i].userName}</label>`;
+            }
+        } else {
+            this._userSelectBtn.style.display = 'none';
+            this._userDeleteBtn.style.display = 'none';
+            this._userListGroup.style.display = 'none';
+        }
+    }
+
+    _deleteSelectedUser() {
+        let radios = this._userListGroup.querySelectorAll('input');
+
+        for (let i = 0; i < radios.length; i++) {
+            if (radios[i].checked) {
+                this._currentUserIndex = i;
+                storageModule.Storage.removeUser(this._currentUserIndex);
+                this._displayUsers();
+                return;
+            }
         }
     }
 
@@ -568,18 +587,20 @@ class GameUI {
                 return;
             }
         }
+
+        confirm('Please select a user.')
     }
 
     _setActiveUser(value) {
         let userList = storageModule.Storage.getUserList();
-        // Checks if the user is newly made, equates to true, or if it was a previous user, equates to false.
+
         if (value) {
-            // Have this call the create new user function after checking that the user name is not already used.
+            this._currentUserIndex = userList.length - 1;
+            this._currentUser = userList[this._currentUserIndex];
         } else {
             this._currentUser = userList[this._currentUserIndex];
+            this._loadPlayThrough();
         }
-
-        this._loadPlayThrough();
     }
 
     _beginPlayThrough() {
@@ -591,7 +612,7 @@ class GameUI {
 
     _loadPlayThrough() {
         this._startingContainer.style.visibility = 'visible';
-        this._startingContainer.innerHTML += `<h1>Click To Start</h1>`;
+        this._startingContainer.innerHTML = `<h1>Click To Start</h1>`;
 
         this._startingContainer.lastChild.addEventListener('click', this._beginPlayThrough.bind(this), {once: true});
 
@@ -599,9 +620,20 @@ class GameUI {
 
         this._userSelectionModal.hide();
         this._userCreationModal.hide();
+        this._endScreenModal.hide()
+    }
+
+    _clearCurrentUser() {
+        this._currentUser = null;
+        this._currentUserIndex = null;
+        this._newUser = false;
     }
 
     _toggleUserSelectionMenu(value) {
+        this._clearCurrentUser();
+        this._userCreationModal.hide();
+        this._endScreenModal.hide();
+
         if (value) {
             let userResult = confirm("Warning! Changing your user will reset your current game\'s progress.")
             if (userResult) {
@@ -621,16 +653,29 @@ class GameUI {
         this._userCreationModal.show();
     }
 
+    _checkName(name) {
+        let userList = storageModule.Storage.getUserList();
 
-    // Rework this to create a new user instead
-    _setUserName() {
+        for (let i = 0; i < userList.length; i++) {
+            if (userList[i].userName === name) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    _createNewUser() {
         let userName = this._userNameTextBox.value.toLowerCase()
+        userName = this._capitalizeName(userName);
         if (userName != '') {
-            userName = this._capitalizeName(userName);
-            this._userSelectionModal.hide();
-            this._userCreationModal.hide();
-            this._displayUserName(userName);
-            this._mainGame.startGame();
+            if (this._checkName(userName)) {
+                this._currentUser = new User(userName);
+                this._newUser = true;
+                this._loadPlayThrough();
+            } else {
+                confirm('User name already taken.');
+            }
         } else {
             confirm('Please Enter a Valid User Name');
         }
@@ -640,47 +685,65 @@ class GameUI {
         this._userNameDisplay.innerText = value;
     }
 
-    temp() {
-        this._currentUser = new User('Jeff')
+    _addUserScore(score) {
+        let newHighScore = false;
 
-        this._currentUser.highestScore = 250;
-        this._currentUser.pastScores = [350, 950, 250, 450, 800];
-        console.log(this._currentUser);
+        if (this._currentUser.highestScore === 0 || score < this._currentUser.highestScore) {
+            this._currentUser.highestScore = score;
+            newHighScore = true;
+        }
+
+        this._currentUser.pastScores.unshift(score);
+        while (this._currentUser.pastScores.length > 5) {
+            this._currentUser.pastScores.pop();
+        };
+
+        return newHighScore;
     }
 
-    _loadEndScreenModal(outCome, newUser) {
-        this.temp();
-        
-        if (newUser) {
-            // If it is a new user, switch the text to say You did it! Thanks for playing!
-            // instead of showing scores in the previous games show a message saying to play again to try and beat your previous score.
-            // finally show them their score below the text new highest score!
+    _loadEndScreenModal(outCome) {
+        let newHighScore = this._addUserScore(outCome);
 
+        if (this._newUser) {
+            this._endScreenMainText.innerText = "Congratulations!"
+            this._endScreenFinalScore.innerText = `Time: ${this._mainGame._timer.convertTime(outCome)}`;
+            this._endScreenHighScoreText.innerText = "New Best Time!"
+            this._endScreenUserScore.innerText = this._mainGame._timer.convertTime(this._currentUser.highestScore);
+            this._endScreenPreviousScoresDisplay.innerHTML = `<p>Play Again to try and beat your time!</p>`
+
+            storageModule.Storage.addUser(this._currentUser);
+            this._newUser = false;
+
+            this._setActiveUser(true);
         } else {
-            if (outCome < this._currentUser.highestScore) {
+            if (newHighScore) {
                 this._endScreenMainText.innerText = "Congratulations!"
-                this._endScreenHighScoreText.innerText = "New High Score!"
-                this._endScreenUserScore.innerText = outCome;
+                this._endScreenHighScoreText.innerText = "New Best Time!"
             } else {
                 this._endScreenMainText.innerText = "Sorry... Try Again"
                 this._endScreenHighScoreText.innerText = "Highest Score"
-                this._endScreenUserScore.innerText = this._currentUser.highestScore;
             }
 
+            this._endScreenFinalScore.innerText = `Time: ${outCome}`;
+            this._endScreenUserScore.innerText = this._mainGame._timer.convertTime(this._currentUser.highestScore);
+
+            this._endScreenPreviousScoresDisplay.innerHTML = `<h5>Previous Runs:</h5>`;
             for (let i = 0; i < this._currentUser.pastScores.length; i++) {
-                this._endScreenPreviousScoresDisplay.innerHTML += `<h6>${this._currentUser.pastScores[i]}</h6>`;
+                this._endScreenPreviousScoresDisplay.innerHTML += `<h6>${this._mainGame._timer.convertTime(this._currentUser.pastScores[i])}</h6>`;
             }
 
-
+            storageModule.Storage.updateUser(this._currentUser, this._currentUserIndex);
         }
 
+        this._endScreenPlayAgainBtn.addEventListener('click', this._loadPlayThrough.bind(this), {once: true});
+        this._endScreenChangeUserBtn.addEventListener('click', this._toggleUserSelectionMenu.bind(this, false), {once: true});
         this._endScreenModal.show();
     }
 
-    gameOver() {
-        confirm('You Win!!!!')
+    gameOver(value) {
+        confirm('You Win!!!!');
 
-        this._toggleUserSelectionMenu(false);
+        this._loadEndScreenModal(value);
     }
 }
 
