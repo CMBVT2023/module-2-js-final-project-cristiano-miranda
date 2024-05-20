@@ -4,10 +4,11 @@ import * as rteModule from "./rte.js";
 import * as cookiecrumbModule from "./cookiecrumb.js";
 import * as storageModule from "./storage.js";
 
-// TODO: Move the display high score to the GameUI class and have it show the user's specific best time.
+// TODO: 
 // Add a total play time property and potentially make a previous high scores array, make this keep like 3 scores.
 // Rework the event check and the power up check to call the end power up and end event methods them selves, pass the main game class to them.
-
+// Fix any UI issues, so far the user creation modal and end screen modal is the main focus.
+// If time allows, add media queries to make the cookies smaller once the screen goes below a certain resolution.
 
 // Alexander recommended that I keep my users are separate key:value pairs in the localStorage.
 // // Look into this one as it might be better optimization wise to store users separately instead of as objects in an array 
@@ -47,9 +48,6 @@ class PlayThrough {
         // Displays the initializes cost of power ups
         this._powerUpDisplayPrice();
 
-        // Loads the user's previous high score in the info display.
-        this._loadHighScoreDisplay();
-
         this._gameUI = ui;
     };
 
@@ -60,7 +58,6 @@ class PlayThrough {
         this._brokenCookieCrumb = document.getElementById('broken-cookie');
 
         // Element involved with displaying information about the game.
-        this._currentHighScoreDisplay = document.getElementById('highest-score');
         this._currentCookiesInfo = document.getElementById('current-cookies');
         this._totalClicksInfo = document.getElementById('total-clicks');
 
@@ -393,12 +390,6 @@ class PlayThrough {
         this._updateScoreBoard();
     };
 
-    // Displays the User's previous high score.
-    _loadHighScoreDisplay() {
-        // Calls the function convertTime, found in the timer object, and converts the high score acquired from the Storage class into the high score display.
-        this._currentHighScoreDisplay.innerText = this._timer.convertTime(storageModule.Storage.loadHighScore());
-    };
-
     // Updates the scoreboard display
     _updateScoreBoard() {
         // Sets the total clicks and total cookies display values
@@ -409,8 +400,7 @@ class PlayThrough {
         // Setting to only 20 cookies to win for testing purposes
         if (this._cookie.currentCookies >= 20) {
             // If the amount of cookies is achieved, 
-            // Call the storage object function to check if the user's acquired score is higher than their previous high score.
-            storageModule.Storage.setHighScore(this._timer.totalTime());
+
             // Calls the function to end the game.
             this.endGame();
         } else if (this._cookie.totalClicks === this._randomEventClicks && this._eventActive() != true) {
@@ -440,9 +430,6 @@ class PlayThrough {
 
         // Updates the scoreboard to reflect the reset values.
         this._updateScoreBoard();
-
-        // Call the function to load the user's current high score from local storage.
-        this._loadHighScoreDisplay();
     };
 
     // Ends the currently active game, only occurs upon the user reaching the necessary cookie amount.
@@ -450,6 +437,8 @@ class PlayThrough {
         // Calls the function to reset all of the game's methods and variables.
         this._gameReset();
 
+        // Calls the gameOver function to signal the Game UI Class to show the endScreenModal
+        // and passes the user's run time through to the Game UI class
         this._gameUI.gameOver(this._timer.totalTime());
     };
 
@@ -500,11 +489,14 @@ class GameUI {
 
         this._startingContainer = document.getElementById('click-to-start');
 
+        this._currentHighScoreDisplay = document.getElementById('highest-score');
+
 
         this._userCreationModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('username-dialog'));
         this._userNameDisplay = document.getElementById('username-display');
         this._userNameBtn = document.getElementById('username-set');
         this._userNameTextBox = document.getElementById('username-text');
+        this._userCreationReturnButton = document.getElementById('go-back');
 
         // Element involved with manually resetting the game.
         this._resetBtn = document.getElementById('reset');
@@ -526,6 +518,7 @@ class GameUI {
 
         this._userNameBtn.addEventListener('click', this._createNewUser.bind(this))
         this._userNameDisplay.addEventListener('click', this._toggleUserSelectionMenu.bind(this))
+        this._userCreationReturnButton.addEventListener('click', this._toggleUserSelectionMenu.bind(this, false))
 
         // Event listener associated with manually resetting the game.
         this._resetBtn.addEventListener('click', this._restartGame.bind(this), { once: true });
@@ -599,7 +592,16 @@ class GameUI {
             this._currentUser = userList[this._currentUserIndex];
         } else {
             this._currentUser = userList[this._currentUserIndex];
+            this._loadHighScore(true);
             this._loadPlayThrough();
+        }
+    }
+
+    _loadHighScore(value) {
+        if (value) {
+            this._currentHighScoreDisplay.innerHTML = this._mainGame._timer.convertTime(this._currentUser.highestScore);
+        } else {
+            this._currentHighScoreDisplay.innerHTML = `00:00`
         }
     }
 
@@ -633,6 +635,7 @@ class GameUI {
         this._clearCurrentUser();
         this._userCreationModal.hide();
         this._endScreenModal.hide();
+        this._loadHighScore(false);
 
         if (value) {
             let userResult = confirm("Warning! Changing your user will reset your current game\'s progress.")
@@ -734,6 +737,8 @@ class GameUI {
 
             storageModule.Storage.updateUser(this._currentUser, this._currentUserIndex);
         }
+
+        this._loadHighScore(true);
 
         this._endScreenPlayAgainBtn.addEventListener('click', this._loadPlayThrough.bind(this), {once: true});
         this._endScreenChangeUserBtn.addEventListener('click', this._toggleUserSelectionMenu.bind(this, false), {once: true});
