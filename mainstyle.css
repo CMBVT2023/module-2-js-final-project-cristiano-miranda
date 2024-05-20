@@ -69,6 +69,7 @@ html, body {
 
 #powerup-display, #rte-display {
     visibility: hidden;
+    z-index: 1;
 }
 
 .enemy-rte {
@@ -96,7 +97,7 @@ html, body {
 #rte-display, #powerup-display {
     width: 25%;
     position: absolute;
-    top: 5%;
+    top: 2%;
     left: 50%;
 }
 
