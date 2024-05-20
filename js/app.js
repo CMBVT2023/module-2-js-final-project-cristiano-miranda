@@ -7,7 +7,7 @@ import * as storageModule from "./storage.js";
 // TODO: 
 // Add a total play time property and potentially make a previous high scores array, make this keep like 3 scores.
 // Rework the event check and the power up check to call the end power up and end event methods them selves, pass the main game class to them.
-// Fix any UI issues, so far the user creation modal and end screen modal is the main focus.
+
 // If time allows, add media queries to make the cookies smaller once the screen goes below a certain resolution.
 
 // Alexander recommended that I keep my users are separate key:value pairs in the localStorage.
@@ -398,7 +398,7 @@ class PlayThrough {
 
         // Checks if the total amount of cookies is achieved, currently set to 250.
         // Setting to only 20 cookies to win for testing purposes
-        if (this._cookie.currentCookies >= 20) {
+        if (this._cookie.currentCookies >= 250) {
             // If the amount of cookies is achieved, 
 
             // Calls the function to end the game.

@@ -34,7 +34,7 @@
 
     <div class="modal fade" id="username-dialog" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="userNameModal" aria-hidden="true">
         <div class="modal-dialog">
-            <div class="modal-content">  
+            <div class="modal-content main-game-colors">  
                 <div class="'modal-header">
                     <h4 class="modal-title text-center" id="userNameModal">Enter Your Name</h4>
                 </div>
@@ -51,7 +51,7 @@
 
     <div class="modal fade" id="end-screen-dialog" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="endScreenModal" aria-hidden="true">
         <div class="modal-dialog">
-            <div class="modal-content">  
+            <div class="modal-content main-game-colors">  
                 <div class="'modal-header">
                     <h4 class="modal-title text-center" id="endScreenModal">Game Over</h4>
                 </div>
@@ -75,34 +75,36 @@
         </div>
     </div>
 
-    <div class="container position-absolute top-0 start-50 translate-middle mt-5 row text-center justify-content-center" id="powerup-display">
-        <h5 class="col-12" id="current-powerup"></h5>
-        <h3 class="col-12" id="powerup-time"></h3>
+    <div class="container translate-middle mt-5 row text-center justify-content-center" id="powerup-display">
+        <h5 class="col-12 text-display" id="current-powerup"></h5>
+        <h3 class="col-12 text-display" id="powerup-time"></h3>
     </div>
     
-    <div class="container position-absolute top-0 start-50 translate-middle mt-5 row text-center justify-content-center" id="rte-display">
-        <h5 class="col-12" id="current-rte"></h5>
-        <h3 class="col-12" id="rte-remain"></h3>
+    <div class="container translate-middle mt-5 row text-center justify-content-center" id="rte-display">
+        <h5 class="col-12 text-display" id="current-rte"></h5>
+        <h3 class="col-12 text-display" id="rte-remain"></h3>
     </div>
 
-    <div class="container position-absolute top-0 start-0 m-0 col-2 justify-content-center text-center user-display">
+    <div class="container position-absolute top-0 start-0 m-0 justify-content-center text-center user-display">
         <h4 class="col-12">Currently Playing:</h4>
         <h6 class="col-12" id="username-display"></h6>
-        <button class="col-6 mt-1 user-button" id="reset">Reset</button>
+        <button class="col-12 mt-1 user-button" id="reset">Reset</button>
     </div>
 
     <div class="container-fluid position-absolute top-0 end-0 m-0 row info-section">
-        <h5 class="col-10">Current Cookies:</h5>
-        <h5 class="col-2 text-end" id="current-cookies">0</h5>
-
-        <h5 class="col-10">Total Clicks:</h5>
-        <h5 class="col-2 text-end" id="total-clicks">0</h5>
-
+        
+        <h5 class="col-8">Current Cookies:</h5>
+        <h5 class="col-4 text-end" id="current-cookies">0</h5>
+            
+        <h5 class="col-8">Total Clicks:</h5>
+        <h5 class="col-4 text-end" id="total-clicks">0</h5>
+            
         <h5 class="col-8">Time Elapsed:</h5>
         <h5 class="col-4 text-end" id="time-elapsed">00:00</h5>
-
+            
         <h5 class="col-8">Best Time:</h5>
         <h5 class="col-4 text-end" id="highest-score">00:00</h5>
+
     </div>
 
     <div class="container-fluid row justify-content-center align-content-center main-game-body">
@@ -111,19 +113,19 @@
     </div>
 
     <div class="container-fluid position-absolute bottom-0 start-0 m-0 row justify-content-between power-up-selection">
-        <div class="col-2 row justify-content-evenly power-up-freeze">
+        <div class="col-sm-12 col-md-2 row justify-content-evenly power-up-freeze">
             <button class="col-12 text-center user-button" id="freeze-time">Freeze Time</button>
             <h6 class="col-2">Cost:</h6>
             <h6 class="col-3 text-end" id="freeze-time-cost"></h6>
         </div>
 
-        <div class="col-2 row justify-content-evenly power-up-value">
+        <div class="col-sm-12 col-md-2 row justify-content-evenly power-up-value">
             <button class="col-12 text-center user-button" id="boost-value">Boost Value</button>
             <h6 class="col-2">Cost:</h6>
             <h6 class="col-3 text-end" id="boost-value-cost"></h6>
         </div>
 
-        <div class="col-2 row justify-content-evenly power-up-click">
+        <div class="col-sm-12 col-md-2 row justify-content-evenly power-up-click">
             <button class="col-12 text-center user-button" id="super-click">Super Click</button>
             <h6 class="col-2">Cost:</h6>
             <h6 class="col-3 text-end" id="super-click-cost"></h6>

@@ -1,8 +1,7 @@
 html, body {
     width: 100vw;
-    min-width: 900px;
+    min-width: 320px;
     height: 100vh;
-    min-height: 750px;
     overflow: hidden;
     user-select: none;
     background-color: #DD9955;
@@ -11,7 +10,7 @@ html, body {
 .main-game-body {
     height: 100vh;
     width: 100vw;
-    min-width: 500px;
+    min-width: 320px;
 }
 
 .main-game-colors {
@@ -38,6 +37,7 @@ html, body {
     color: #eecc77;
     border-radius: 20px;
     padding: 10px;
+    width: 20vw;
 }
 
 .info-section {
@@ -45,13 +45,15 @@ html, body {
 }
 
 #cookie-crumb, #broken-cookie {
-    height: 475px;
-    width: 500px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 35vw;
 }
 
 #broken-cookie {
     visibility: hidden;
-    margin-left: -500px;
     opacity: 80%;
 }
 
@@ -75,12 +77,11 @@ html, body {
 }
 
 #enemy-entity {
-    width: 250px;
+    width: 15vw;
 }
 
 .cookie-crumb-trail, .cookie-crumb-hunt {
-    height: 100px;
-    width: 100px;
+    width: 10vw;
 }
 
 .cookie-crumb-trail {
@@ -94,22 +95,27 @@ html, body {
 
 #rte-display, #powerup-display {
     width: 25%;
+    position: absolute;
+    top: 5%;
+    left: 50%;
 }
 
 #click-to-start {
     position: absolute;
-    top: 25%;
+    top: 50%;
     left: 50%;
-    width: 80%;
-    margin-left: -40%;
+    width: 100vw;
+    height: 40vw;
+    transform: translate(-50%, -50%);
     text-align: center;
+    align-content: center;
     visibility: hidden;
 }
 
 #click-to-start h1 {
     font-weight: bold;
     color: white;
-    font-size: 10rem;
+    font-size: 15vw;
 }
 
 #click-to-start h1:hover {
@@ -128,4 +134,53 @@ html, body {
 #end-screen-scores {
     display: flex;
     justify-content: space-around;
+}
+
+@media screen and (max-width: 700px) {
+    #rte-display, #powerup-display {
+        top: 5%;
+        left: 35%;
+        width: 30vw;
+    }
+    .text-display {
+        font-size: 15px;
+    }
+}
+
+@media screen and (max-width: 500px) {
+    .user-display h4{
+        font-size: 10px;
+    }
+    .user-display h6{
+        font-size: 10px;
+    }
+    .user-display button {
+        width: 50px;
+    }
+    .user-button {
+        font-size: 10px;
+    }
+    .info-section {
+        width: 200px;
+    }
+    .info-section h5 {
+        font-size: 12px;
+    }
+    #cookie-crumb, #broken-cookie {
+        width: 75vw;
+    }
+    .cookie-crumb-trail, .cookie-crumb-hunt {
+        width: 20vw;
+    }
+    #enemy-entity {
+        width: 25vw;
+    }
+    #rte-display, #powerup-display {
+        top: 15%;
+        left: 30%;
+        width: 75vw;
+    }
+    .text-display {
+        font-size: 15px;
+    }
 }
