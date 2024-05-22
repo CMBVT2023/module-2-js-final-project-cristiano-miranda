@@ -1,5 +1,5 @@
 export class Timer {
-    constructor() {
+    constructor(playThrough) {
         // Initializes variables for the main timer and the powerup timer.
         this._gameStartTime;
         this._powerUpStartTime;
@@ -11,6 +11,9 @@ export class Timer {
 
         // Function call that will load all HTML elements related to the timers.
         this._loadHTMLElements();
+
+        // Sets the object instance passed in by the main PlayThrough class to a variable
+        this._mainGame = playThrough;        
     };
 
     // Loads all HTML elements related to the timer.
@@ -69,10 +72,12 @@ export class Timer {
         return Math.floor((Date.now() - this._powerUpStartTime) / 1000);
     };
 
-    // Disables the powerup timer and sets the sets the powerUpTimerActive variable to false
+    // Disables the powerup timer, sets the sets the powerUpTimerActive variable to false, and calls the method to reset the power ups from within the main
+    // PlayThrough class object.
     stopPowerUpTimer() {
         clearInterval(this._powerUpCounter);
         this._powerUpTimerActive = false;
+        this._mainGame.powerUpReset()
     };
 
     // Calls the function to sets the powerup's starting time,

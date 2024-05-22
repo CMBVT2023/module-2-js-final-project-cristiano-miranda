@@ -14,449 +14,421 @@ import * as storageModule from "./storage.js";
 // // Look into this one as it might be better optimization wise to store users separately instead of as objects in an array 
 
 class PlayThrough {
-    constructor(ui) {
-        // Initializes new objects for the game to utilize.
-        this._cookie = new cookiecrumbModule.CookieCrumb();
-        this._timer = new timerModule.Timer();
-        this._rte = new rteModule.RealTimeEvent();
+  constructor(ui) {
+    // Initializes new objects for the game to utilize.
+    this._cookie = new cookiecrumbModule.CookieCrumb();
+    this._timer = new timerModule.Timer(this);
+    this._rte = new rteModule.RealTimeEvent(this);
 
-        // Initializes a variable to set the default click value increase to 1.
-        this._cookieCrumbValue = 1;
+    // Initializes a variable to set the default click value increase to 1.
+    this._cookieCrumbValue = 1;
 
-        // Initializes a variable to store the total number of power ups activated during a play through.
-        this._powerUpNum = 0;
+    // Initializes a variable to store the total number of power ups activated during a play through.
+    this._powerUpNum = 0;
 
-        // Initializes booleans associated with power ups.
-        this._holdEnabled = false;
-        this._powerUpSuperClickActive = false;
-        this._powerUpActive = false;
+    // Initializes booleans associated with power ups.
+    this._holdEnabled = false;
+    this._powerUpSuperClickActive = false;
 
-        // Initializes a variable that stores when a random event will occur, based on the user's total clicks.
-        this._randomEventClicks = 0;
+    // Initializes a variable that stores when a random event will occur, based on the user's total clicks.
+    this._randomEventClicks = 0;
 
-        // Initializes booleans associated with RTEs.
-        this._eventActiveEnemy = false;
-        this._eventActiveTrail = false;
-        this._eventActiveHunt = false;
+    // Loads all the main HTML elements for the game.
+    this._loadHTMLElements();
 
-        // Loads all the main HTML elements for the game.
-        this._loadHTMLElements();
+    // Loads all the event listeners for the game
+    this._loadDefaultEventListeners();
 
-        // Loads all the event listeners for the game
-        this._loadDefaultEventListeners();
+    // Displays the initializes cost of power ups
+    this._powerUpDisplayPrice();
 
-        // Displays the initializes cost of power ups
-        this._powerUpDisplayPrice();
+    this._gameUI = ui;
+  }
 
-        this._gameUI = ui;
-    };
+  // Loads all necessary HTML elements for the game to utilize.
+  _loadHTMLElements() {
+    // Elements involved with the cookie crumb that will be clicked by the user.
+    this._cookieCrumb = document.getElementById("cookie-crumb");
+    this._brokenCookieCrumb = document.getElementById("broken-cookie");
 
-    // Loads all necessary HTML elements for the game to utilize.
-    _loadHTMLElements() {
-        // Elements involved with the cookie crumb that will be clicked by the user.
-        this._cookieCrumb = document.getElementById('cookie-crumb');
-        this._brokenCookieCrumb = document.getElementById('broken-cookie');
+    // Element involved with displaying information about the game.
+    this._currentCookiesInfo = document.getElementById("current-cookies");
+    this._totalClicksInfo = document.getElementById("total-clicks");
 
-        // Element involved with displaying information about the game.
-        this._currentCookiesInfo = document.getElementById('current-cookies');
-        this._totalClicksInfo = document.getElementById('total-clicks');
+    // Elements involved with the power ups within the game.
+    this._MainPowerUpDisplay = document.getElementById("powerup-display");
+    this._currentPowerUpDisplay = document.getElementById("current-powerup");
+    this._freezeTimePriceDisplay = document.getElementById("freeze-time-cost");
+    this._boostValuePriceDisplay = document.getElementById("boost-value-cost");
+    this._superClickPriceDisplay = document.getElementById("super-click-cost");
+    this._boostValueBtn = document.getElementById("boost-value");
+    this._superClickBtn = document.getElementById("super-click");
+    this._freezeTimeBtn = document.getElementById("freeze-time");
+  }
 
-        // Elements involved with the power ups within the game.
-        this._MainPowerUpDisplay = document.getElementById('powerup-display');
-        this._currentPowerUpDisplay = document.getElementById('current-powerup');
-        this._freezeTimePriceDisplay = document.getElementById('freeze-time-cost');
-        this._boostValuePriceDisplay = document.getElementById('boost-value-cost');
-        this._superClickPriceDisplay = document.getElementById('super-click-cost');
-        this._boostValueBtn = document.getElementById('boost-value');
-        this._superClickBtn = document.getElementById('super-click');
-        this._freezeTimeBtn = document.getElementById('freeze-time');
-    };
+  // Loads the default event listeners for the game.
+  _loadDefaultEventListeners() {
+    // Event listeners associated with the power ups for the game.
+    this._cookieCrumb.addEventListener("click", this._userClick.bind(this));
+    this._boostValueBtn.addEventListener(
+      "click",
+      this._powerUpPreCheck.bind(this, "boost-value")
+    );
+    this._superClickBtn.addEventListener(
+      "click",
+      this._powerUpPreCheck.bind(this, "super-click")
+    );
+    this._freezeTimeBtn.addEventListener(
+      "click",
+      this._powerUpPreCheck.bind(this, "freeze-time")
+    );
+  }
 
-    // Loads the default event listeners for the game.
-    _loadDefaultEventListeners() {
-        // Event listeners associated with the power ups for the game.
-        this._cookieCrumb.addEventListener('click', this._userClick.bind(this));
-        this._boostValueBtn.addEventListener('click', this._powerUpPreCheck.bind(this, 'boost-value'));
-        this._superClickBtn.addEventListener('click', this._powerUpPreCheck.bind(this, 'super-click'));
-        this._freezeTimeBtn.addEventListener('click', this._powerUpPreCheck.bind(this, 'freeze-time'))
-    };
+  // All methods below are related to the RTEs portion of the game.
 
-    // All methods below are related to the RTEs portion of the game.
+  // Returns if any of the three RTEs are currently active.
+  _eventActive() {
+    return (
+      this._rte.enemyAlive ||
+      this._rte.cookieTrailActive ||
+      this._rte.cookieHuntActive
+    );
+  }
 
-    // Returns if any of the three RTEs are currently active.
-    _eventActive() {
-        return (this._eventActiveEnemy || this._eventActiveHunt || this._eventActiveTrail);
-    };
+  // Calculates when an RTE will occur
+  _eventClickCalculator() {
+    // Sets the randomEventClicks equal to a random amount
+    // // This amount is based on the current value of the user's total clicks.
+    this._randomEventClicks = 
+      Math.ceil(Math.random() * 50) + this._cookie.totalClicks + 30;
+      console.log(this._randomEventClicks)
+  }
 
-    // Calculates when an RTE will occur
-    _eventClickCalculator() {
-        // Sets the randomEventClicks equal to a random amount
-        // // This amount is based on the current value of the user's total clicks.
-        this._randomEventClicks = Math.ceil(Math.random() * 50) + this._cookie.totalClicks + 30;
-    };
+  // Randomly activates one of the three potential RTEs.
+  _activateEvent() {
+    // Initializes a variable and assigns it a random value of 1, 2, or 3.
+    let num = Math.ceil(Math.random() * 3);
 
-    // Randomly activates one of the three potential RTEs.
-    _activateEvent() {
-        // Initializes a variable and assigns it a random value of 1, 2, or 3.
-        let num = Math.ceil(Math.random() * 3);
+    // Disables and resets any current user power ups.
+    this.powerUpReset();
 
-        // Disables and resets any current user power ups.
-        this._powerUpReset();
+    // Sets the cookieCrumb to hidden from the user and sets the brokenCookieCrumb to visible.
+    this._cookieCrumb.style.visibility = "hidden";
+    this._brokenCookieCrumb.style.visibility = "visible";
 
-        // Sets the cookieCrumb to hidden from the user and sets the brokenCookieCrumb to visible.
-        this._cookieCrumb.style.visibility = 'hidden';
-        this._brokenCookieCrumb.style.visibility = 'visible';
+    // Checks to see the value of num.
+    switch (num) {
+      case 1: {
+        // If num = 1, summon the enemy RTE event and set the enemy RTE boolean to true.
+        this._rte.summonEnemy();
+        break;
+      }
+      case 2: {
+        // If num = 2, summon the cookie trail RTE event and set the cookie trail RTE boolean to true.
+        this._rte.summonCookieTrail();
+        break;
+      }
+      case 3: {
+        // If num = 3, summon the cookie hunt RTE event and set the cookie hunt RTE boolean to true.
+        this._rte.summonCookieHunt();
+        break;
+      }
+    }
+  }
 
-        // Checks to see the value of num.
-        switch (num) {
-            case 1: {
-                // If num = 1, summon the enemy RTE event and set the enemy RTE boolean to true.
-                this._rte.summonEnemy();
-                this._eventActiveEnemy = true;
-                break;
-            };
-            case 2: {
-                // If num = 2, summon the cookie trail RTE event and set the cookie trail RTE boolean to true.
-                this._rte.summonCookieTrail();
-                this._eventActiveTrail = true;
-                break;
-            };
-            case 3: {
-                // If num = 3, summon the cookie hunt RTE event and set the cookie hunt RTE boolean to true.
-                this._rte.summonCookieHunt();
-                this._eventActiveHunt = true;
-                break;
-            };
-        };
+  // Used to manually clear the currently active RTE event and redisplay the main cookie element.   
+  _eventManualReset() {
+    // Calls the clearRTE method to clear the currently active event
+    this._rte.clearRTE(true);
 
-        // Calls the function that checks when the current event is completed.
-        this._eventCheck();
-    };
+    // Sets the main cookie crumb to visible and hides the broken cookie crumb from the user.
+    this._cookieCrumb.style.visibility = "visible";
+    this._brokenCookieCrumb.style.visibility = "hidden";
+  }
 
-    // Resets all variables and methods related to the game's RTEs.
-    _eventReset() {
-        // Calls the RTE object's function to clear the currently active RTE.
-        this._rte.clearRTE();
+  // Provide a cookie crumb bonus once the user finishes the currently active event, recalculates the necessary clicks to trigger the next event,
+  // and displays the main cookie crumb again.
+  eventComplete() {
+    // Recalculates the next occurrence of an RTE using the user's current total clicks.
+    this._eventClickCalculator();
 
-        // Sets the main cookie crumb to visible and hides the broken cookie crumb from the user.
-        this._cookieCrumb.style.visibility = 'visible';
-        this._brokenCookieCrumb.style.visibility = 'hidden';
+    // Increases the user's current cookie amount by a random amount and updates the scoreboard to reflect the increase.
+    this._cookie.randomIncrease();
+    this._updateScoreBoard();
 
-        // Sets all RTE active booleans to false.
-        this._eventActiveEnemy = false;
-        this._eventActiveTrail = false;
-        this._eventActiveHunt = false;
+    // Sets the main cookie crumb to visible and hides the broken cookie crumb from the user.
+    this._cookieCrumb.style.visibility = "visible";
+    this._brokenCookieCrumb.style.visibility = "hidden";
+  }
 
-        // Clears the event checking loop.
-        clearInterval(this._eventCounter);
-    };
+  // All methods below are related to the power ups portion of the game.
 
-    // Checks when the user finishes the currently active event and then clears it.
-    _eventCheck() {
-        // Creates a loop using setInterval that will run every 250 milliseconds
-        this._eventCounter = setInterval(() => {
-            // Checks if the enemy event is active and if the RTE enemy alive variable is false,
-            // or checks if the cookie trail event is active and if the RTE cookieTrailComplete variable is true,
-            // or checks if the cookie hunt event is active and if the RTE cookieHuntActive variable is false
-            if ((this._eventActiveEnemy && this._rte.enemyAlive === false) || (this._eventActiveTrail && this._rte.cookieTrailComplete) || (this._eventActiveHunt && this._rte._cookieHuntActive === false)) {
-                // If any of the three conditions are true.
+  // Calculates the price of each power up.
+  //  // Parameter is the initial cost of a powerup.
+  _powerUpPriceCalculator(baseCost) {
+    // Price is calculated based on the number of power ups purchased so far, each purchase adds an extra 75% cost to the base cost.
+    return Math.ceil(this._powerUpNum * 0.75 * baseCost + baseCost);
+  }
 
-                // Increases the user's current cookie amount by a random amount and updates the scoreboard to reflect the increase.
-                this._cookie.randomIncrease();
-                this._updateScoreBoard();
+  // Displays the price of every power up
+  _powerUpDisplayPrice() {
+    // Calls the function to calculate the price of each powerup and sets the return value to the inner text of each powerup display element.
+    this._boostValuePriceDisplay.innerText = this._powerUpPriceCalculator(50);
+    this._superClickPriceDisplay.innerText = this._powerUpPriceCalculator(30);
+    this._freezeTimePriceDisplay.innerText = this._powerUpPriceCalculator(20);
+  }
 
-                // Recalculates the next occurrence of an RTE using the user's current total clicks.
-                this._eventClickCalculator();
+  // Displays the currently active power up
+  // // Parameter is the string that contains the name of the currently active power up
+  _displayPowerUp(powerUp) {
+    // Sets the power up display inner text to a string that shows the currently active power up
+    this._currentPowerUpDisplay.innerText = `${powerUp} Currently Active`;
+    // Makes the power up display element visible to the user.
+    this._MainPowerUpDisplay.style.visibility = "visible";
+  }
 
-                // Calls the reset event function to clear and reset the current RTE.
-                this._eventReset();
-            };
-        }, 250);
-    };
+  // Pre-checks if certain there are certain conditions met before activating a power up.
+  // // Parameter is the power up the user wants to activate.
+  _powerUpPreCheck(powerUp) {
+    // Checks if there is a power up or event current active.
+    if (this._timer.powerUpTimerActive != true && this._eventActive() != true) {
+      // If no event or power up is currently active.
 
-    // All methods below are related to the power ups portion of the game.
+      // Initializes a variable that will store the power up's price.
+      let powerUpPrice;
 
-    // Calculates the price of each power up.
-    //  // Parameter is the initial cost of a powerup.
-    _powerUpPriceCalculator(baseCost) {
-        // Price is calculated based on the number of power ups purchased so far, each purchase adds an extra 75% cost to the base cost.
-        return Math.ceil(((this._powerUpNum * .75) * baseCost) + baseCost);
-    };
+      // Checks which power up the user is attempting to activate.
+      switch (powerUp) {
+        case "boost-value": {
+          // If the power up is the boost value powerup
 
-    // Displays the price of every power up
-    _powerUpDisplayPrice() {
-        // Calls the function to calculate the price of each powerup and sets the return value to the inner text of each powerup display element. 
-        this._boostValuePriceDisplay.innerText = this._powerUpPriceCalculator(50);
-        this._superClickPriceDisplay.innerText = this._powerUpPriceCalculator(30);
-        this._freezeTimePriceDisplay.innerText = this._powerUpPriceCalculator(20);
-    };
+          // Set the powerup price to the value returned by the calculated price.
+          powerUpPrice = this._powerUpPriceCalculator(50);
+          break;
+        }
+        case "super-click": {
+          // If the power up is the super click powerup
 
-    // Displays the currently active power up
-    // // Parameter is the string that contains the name of the currently active power up 
-    _displayPowerUp(powerUp) {
-        // Sets the power up display inner text to a string that shows the currently active power up
-        this._currentPowerUpDisplay.innerText = `${powerUp} Currently Active`;
-        // Makes the power up display element visible to the user.
-        this._MainPowerUpDisplay.style.visibility = 'visible';
-    };
+          // Set the powerup price to the value returned by the calculated price.
+          powerUpPrice = this._powerUpPriceCalculator(30);
+          break;
+        }
+        case "freeze-time": {
+          // If the power up is the freeze time powerup
 
-    // Pre-checks if certain there are certain conditions met before activating a power up.
-    // // Parameter is the power up the user wants to activate.
-    _powerUpPreCheck(powerUp) {
-        // Checks if there is a power up or event current active.
-        if ((this._powerUpActive != true && this._eventActive() != true)) {
-            // If no event or power up is currently active.
+          // Set the powerup price to the value returned by the calculated price.
+          powerUpPrice = this._powerUpPriceCalculator(20);
+          break;
+        }
+      }
 
-            // Initializes a variable that will store the power up's price.
-            let powerUpPrice;
+      // Checks if the user has the necessary cookies to pay for the price of the power up.
+      if (powerUpPrice <= this._cookie.currentCookies) {
+        // If so, call the cookie function to remove the power up cost from the user's total cookies.
+        this._cookie.powerUp(powerUpPrice);
 
-            // Checks which power up the user is attempting to activate.
-            switch (powerUp) {
-                case 'boost-value': {
-                    // If the power up is the boost value powerup
+        // Call the function to toggle the user's desired power up.
+        this._powerUpToggle(powerUp);
+      }
+    }
+  }
 
-                    // Set the powerup price to the value returned by the calculated price.
-                    powerUpPrice = this._powerUpPriceCalculator(50);
-                    break;
-                };
-                case 'super-click': {
-                    // If the power up is the super click powerup
+  // Toggles a specific power up.
+  // // Parameter is the power up that is to be activated.
+  _powerUpToggle(powerUp) {
+    // Increments the total powerup purchased by one.
+    this._powerUpNum += 1;
 
-                    // Set the powerup price to the value returned by the calculated price.
-                    powerUpPrice = this._powerUpPriceCalculator(30);
-                    break;
-                };
-                case 'freeze-time': {
-                    // If the power up is the freeze time powerup
+    // Checks the value of powerUp parameter.
+    switch (powerUp) {
+      case "boost-value": {
+        // If the power up to be activated is boost value.
 
-                    // Set the powerup price to the value returned by the calculated price.
-                    powerUpPrice = this._powerUpPriceCalculator(20);
-                    break;
-                };
-            };
+        // Randomizes the amount of cookies collected on each click, either 2 or 3, and sets the cookieCrumbValue equal to this number.
+        let boostValue = Math.ceil(Math.random() * 2) + 1;
+        this._cookieCrumbValue = boostValue;
 
-            // Checks if the user has the necessary cookies to pay for the price of the power up. 
-            if (powerUpPrice <= this._cookie.currentCookies) {
-                // If so, call the cookie function to remove the power up cost from the user's total cookies.
-                this._cookie.powerUp(powerUpPrice);
+        // Calls the timer function to start timing for the power up.
+        this._timer.startPowerUpTimer(10);
 
-                // Call the function to toggle the user's desired power up.
-                this._powerUpToggle(powerUp);
-            };
-        };
+        // Calls the function to display the current power up.
+        this._displayPowerUp("Boost Value");
+        break;
+      }
+      case "super-click": {
+        // If the power up to be activated is super click.
+
+        // Creates a event listener that will activate the super click power up upon the user's next click of the cookie crumb element.
+        this._cookieCrumb.addEventListener(
+          "click",
+          this._powerUpSuperClickToggle.bind(this, true),
+          { once: true }
+        );
+
+        // Calls the timer function to start timing for the power up.
+        this._timer.startPowerUpTimer(15);
+
+        // Calls the function to display the current power up.
+        this._displayPowerUp("Super Click");
+        break;
+      }
+      case "freeze-time": {
+        // If the power up to be activated is freeze time.
+
+        // Calls the timer function to freeze the main timer and to activate and time the freeze time power up.
+        this._timer.freezeTimeCounter(10);
+
+        // Calls the function to display the current power up.
+        this._displayPowerUp("Freeze Time");
+        break;
+      }
     }
 
-    // Toggles a specific power up.
-    // // Parameter is the power up that is to be activated.
-    _powerUpToggle(powerUp) {
-        // Increments the total powerup purchased by one.
-        this._powerUpNum += 1;
+    // Calls the power up display price to recalculate the new power up costs.
+    this._powerUpDisplayPrice();
 
-        // Checks the value of powerUp parameter.
-        switch (powerUp) {
-            case 'boost-value': {
-                // If the power up to be activated is boost value.
+    // Calls the update score board function to show the user's new cookie crumb count
+    this._updateScoreBoard();
+  }
 
-                // Randomizes the amount of cookies collected on each click, either 2 or 3, and sets the cookieCrumbValue equal to this number.
-                let boostValue = Math.ceil(Math.random() * 2) + 1;
-                this._cookieCrumbValue = boostValue;
+  // Activates the super click power up.
+  // // Parameter is a boolean that determines if the power up will be toggled on or off.
+  _powerUpSuperClickToggle(value) {
+    // Checks if the passed in boolean is true or false.
+    if (value) {
+      // If the boolean is true.
 
-                // Calls the timer function to start timing for the power up.
-                this._timer.startPowerUpTimer(10);
+      // Sets the holdEnabled boolean to true.
+      this._holdEnabled = true;
 
-                // Calls the function to display the current power up.
-                this._displayPowerUp('Boost Value');
-                break;
-            }
-            case 'super-click': {
-                // If the power up to be activated is super click.
+      // Calls the function to trigger the super click power up feature.
+      this._powerUpSuperClick();
+    } else {
+      // If the boolean is false
 
-                // Creates a event listener that will activate the super click power up upon the user's next click of the cookie crumb element.
-                this._cookieCrumb.addEventListener('click', this._powerUpSuperClickToggle.bind(this, true), { once: true });
+      // Sets the holdEnabled boolean to false.
+      this._holdEnabled = false;
+    }
+  }
 
-                // Calls the timer function to start timing for the power up.
-                this._timer.startPowerUpTimer(15)
+  // Activates the super click power up feature.
+  _powerUpSuperClick() {
+    // Checks if the holdEnabled boolean is true.
+    if (this._holdEnabled) {
+      // If the boolean is true.
 
-                // Calls the function to display the current power up.
-                this._displayPowerUp('Super Click');
-                break;
-            }
-            case 'freeze-time': {
-                // If the power up to be activated is freeze time.
+      // Calls the function to increase the user's current cookies.
+      this._cookie.increaseCookies(this._cookieCrumbValue);
 
-                // Calls the timer function to freeze the main timer and to activate and time the freeze time power up.
-                this._timer.freezeTimeCounter(10)
+      // Calls the function to update the scoreboard.
+      this._updateScoreBoard();
 
-                // Calls the function to display the current power up.
-                this._displayPowerUp('Freeze Time');
-                break;
-            };
-        };
+      // Creates a timeout that will recursively call this function once 250 milliseconds has passed.
+      setTimeout(() => {
+        this._powerUpSuperClick();
+      }, 250);
+    }
+  }
 
-        // Calls the power up display price to recalculate the new power up costs.
-        this._powerUpDisplayPrice();
+  // Resets all variables and methods related to the game's power ups.
+  powerUpReset() {
+    // Sets the cookieCrumbValue variable back to 1.
+    this._cookieCrumbValue = 1;
 
-        // Sets the powerUpActive boolean to true.
-        this._powerUpActive = true;
+    // Triggers the super click power up off.
+    this._powerUpSuperClickToggle(false);
 
-        // Calls the update score board function to show the user's new cookie crumb count
-        this._updateScoreBoard();
+    // Calls the timer object's function to clear any method and variables relating to power ups.
+    this._timer.clearPowerUp();
 
-        // Calls the function that checks when the current power up has timed out.
-        this._powerUpCheck();
-    };
+    // Sets the power up display to hidden and sets its innerText to an empty string.
+    this._MainPowerUpDisplay.style.visibility = "hidden";
+    this._currentPowerUpDisplay.innerText = ``;
+  }
 
-    // Activates the super click power up.
-    // // Parameter is a boolean that determines if the power up will be toggled on or off. 
-    _powerUpSuperClickToggle(value) {
-        // Checks if the passed in boolean is true or false.
-        if (value) {
-            // If the boolean is true.
+  // All methods below are related to score and displaying information of the game.
 
-            // Sets the holdEnabled boolean to true.
-            this._holdEnabled = true;
+  // Increments the user's cookies and total clicks and updates the scoreboard afterwards.
+  _userClick() {
+    // Calls the function that increase total clicks
+    this._cookie.increaseClicks();
+    // Calls the function that increase total clicks and passes in the current value from the cookieCrumbValue
+    this._cookie.increaseCookies(this._cookieCrumbValue);
 
-            // Calls the function to trigger the super click power up feature.
-            this._powerUpSuperClick();
-        } else {
-            // If the boolean is false
+    // Calls the function that updates the scoreboard
+    this._updateScoreBoard();
+  }
 
-            // Sets the holdEnabled boolean to false.
-            this._holdEnabled = false;
-        };
-    };
+  // Updates the scoreboard display
+  _updateScoreBoard() {
+    // Sets the total clicks and total cookies display values
+    this._currentCookiesInfo.innerText = this._cookie.currentCookies;
+    this._totalClicksInfo.innerText = this._cookie.totalClicks;
 
-    // Activates the super click power up feature.
-    _powerUpSuperClick() {
-        // Checks if the holdEnabled boolean is true.
-        if (this._holdEnabled) {
-            // If the boolean is true.
+    // Checks if the total amount of cookies is achieved, currently set to 250.
+    // Setting to only 20 cookies to win for testing purposes
+    if (this._cookie.currentCookies >= 250) {
+      // If the amount of cookies is achieved,
 
-            // Calls the function to increase the user's current cookies.
-            this._cookie.increaseCookies(this._cookieCrumbValue);
+      // Calls the function to end the game.
+      this.endGame();
+    } else if (
+      this._cookie.totalClicks === this._randomEventClicks &&
+      this._eventActive() != true
+    ) {
+      // Checks if the amount of total clicks reaches the amount needed to activate an RTE, and checks that an RTE is currently not active.
+      // If so, calls the function to activate the event.
+      this._activateEvent();
+    }
+  }
 
-            // Calls the function to update the scoreboard.
-            this._updateScoreBoard();
+  // All methods below are related to starting, resetting, and stopping the game.
 
-            // Creates a timeout that will recursively call this function once 250 milliseconds has passed.
-            setTimeout(() => { this._powerUpSuperClick() }, 250);
-        };
-    };
+  // Resets all features of the game to prepare for a new play through.
+  _gameReset() {
+    // Calls the timer function to stop the timer from timing.
+    this._timer.timerStop();
 
-    // Resets all variables and methods related to the game's power ups.
-    _powerUpReset() {
-        // Sets the cookieCrumbValue variable back to 1.
-        this._cookieCrumbValue = 1;
+    // Sets the powerUpNum back to zero and resets any currently active RTEs or power ups.
+    this._powerUpNum = 0;
+    this.powerUpReset();
+    this._eventManualReset();
 
-        // Triggers the super click power up off.
-        this._powerUpSuperClickToggle(false);
+    // Calls the cookie object's function to reset the total clicks and current cookies.
+    this._cookie.scoreReset();
 
-        // Calls the timer object's function to clear any method and variables relating to power ups.
-        this._timer.clearPowerUp();
+    // Calls the function to recalculate the power ups cost, which will be the base cost.
+    this._powerUpDisplayPrice();
 
-        // Clears the power up checking loop.
-        clearInterval(this._powerUpCounter);
+    // Updates the scoreboard to reflect the reset values.
+    this._updateScoreBoard();
+  }
 
-        // Sets the powerUpActive boolean to false.
-        this._powerUpActive = false;
+  // Ends the currently active game, only occurs upon the user reaching the necessary cookie amount.
+  endGame() {
+    // Calls the function to reset all of the game's methods and variables.
+    this._gameReset();
 
-        // Sets the power up display to hidden and sets its innerText to an empty string.
-        this._MainPowerUpDisplay.style.visibility = 'hidden';
-        this._currentPowerUpDisplay.innerText = ``;
-    };
+    // Calls the gameOver function to signal the Game UI Class to show the endScreenModal
+    // and passes the user's run time through to the Game UI class
+    this._gameUI.gameOver(this._timer.totalTime());
+  }
 
-    // Checks when the currently active power up times out and then clears it.
-    _powerUpCheck() {
-        // Creates a loop using setInterval that will run every 1 second.
-        this._powerUpCounter = setInterval(() => {
-            // Checks if the powerUpActive boolean is true and if the timer's powerUpTimerActive boolean becomes false.
-            if (this._powerUpActive && this._timer.powerUpTimerActive === false) {
-                // If so the function to reset the power ups is called.
-                this._powerUpReset();
-            }
-        }, 1000);
-    };
+  // Halts the currently running game, occurs when the user chooses to switch their name/account or hit the reset button.
+  haltGame() {
+    // Calls the function to reset all of the game's methods and variables.
+    this._gameReset();
+  }
 
-    // All methods below are related to score and displaying information of the game.
+  // Begin the games main timer and calculates the needed total clicks for RTEs to activate.
+  startGame() {
+    // Begins the game's main timer to keep track of the user's potential completion time.
+    this._timer.timerStart();
 
-    // Increments the user's cookies and total clicks and updates the scoreboard afterwards.
-    _userClick() {
-        // Calls the function that increase total clicks
-        this._cookie.increaseClicks();
-        // Calls the function that increase total clicks and passes in the current value from the cookieCrumbValue
-        this._cookie.increaseCookies(this._cookieCrumbValue);
-
-        // Calls the function that updates the scoreboard
-        this._updateScoreBoard();
-    };
-
-    // Updates the scoreboard display
-    _updateScoreBoard() {
-        // Sets the total clicks and total cookies display values
-        this._currentCookiesInfo.innerText = this._cookie.currentCookies;
-        this._totalClicksInfo.innerText = this._cookie.totalClicks;
-
-        // Checks if the total amount of cookies is achieved, currently set to 250.
-        // Setting to only 20 cookies to win for testing purposes
-        if (this._cookie.currentCookies >= 250) {
-            // If the amount of cookies is achieved, 
-
-            // Calls the function to end the game.
-            this.endGame();
-        } else if (this._cookie.totalClicks === this._randomEventClicks && this._eventActive() != true) {
-            // Checks if the amount of total clicks reaches the amount needed to activate an RTE, and checks that an RTE is currently not active.
-            // If so, calls the function to activate the event.
-            this._activateEvent();
-        };
-    };
-
-    // All methods below are related to starting, resetting, and stopping the game.
-
-    // Resets all features of the game to prepare for a new play through.
-    _gameReset() {
-        // Calls the timer function to stop the timer from timing.
-        this._timer.timerStop();
-
-        // Sets the powerUpNum back to zero and resets any currently active RTEs or power ups.
-        this._powerUpNum = 0;
-        this._powerUpReset();
-        this._eventReset();
-
-        // Calls the cookie object's function to reset the total clicks and current cookies.
-        this._cookie.scoreReset();
-
-        // Calls the function to recalculate the power ups cost, which will be the base cost.
-        this._powerUpDisplayPrice();
-
-        // Updates the scoreboard to reflect the reset values.
-        this._updateScoreBoard();
-    };
-
-    // Ends the currently active game, only occurs upon the user reaching the necessary cookie amount.
-    endGame() {
-        // Calls the function to reset all of the game's methods and variables.
-        this._gameReset();
-
-        // Calls the gameOver function to signal the Game UI Class to show the endScreenModal
-        // and passes the user's run time through to the Game UI class
-        this._gameUI.gameOver(this._timer.totalTime());
-    };
-
-    // Halts the currently running game, occurs when the user chooses to switch their name/account or hit the reset button.
-    haltGame() {
-        // Calls the function to reset all of the game's methods and variables.
-        this._gameReset();
-    };
-
-    // Begin the games main timer and calculates the needed total clicks for RTEs to activate.
-    startGame() {
-        // Begins the game's main timer to keep track of the user's potential completion time.
-        this._timer.timerStart();
-
-        // Calls the function to calculate when an RTE event will occur based on the user's total clicks.
-        // // In this case, upon the game starting, the event will occur from 30-80 clicks.
-        this._eventClickCalculator();
-    };
+    // Calls the function to calculate when an RTE event will occur based on the user's total clicks.
+    // // In this case, upon the game starting, the event will occur from 30-80 clicks.
+    this._eventClickCalculator();
+  }
 };
 
 function User(name) {

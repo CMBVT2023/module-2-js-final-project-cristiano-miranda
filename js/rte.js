@@ -1,12 +1,12 @@
 export class RealTimeEvent {
-    constructor() {
+    constructor(playThrough) {
         // Initializes the variables for the enemy RTE
         this._enemyHealth = 0;
         this._enemyAlive;
 
         // Initializes the variables for the cookie trail RTE
         this._currentTrailCrumb = 0;
-        this._cookieTrailComplete;
+        this._cookieTrailActive;
 
         // Initializes the variables for the cookie hunt RTE
         this._cookieHuntNum = 0;
@@ -15,6 +15,9 @@ export class RealTimeEvent {
 
         // Calls the function to load all the HTML elements related to the RTE events
         this._loadHTMLElements();
+
+        // Sets the object instance passed in by the main PlayThrough class to a variable
+        this._mainGame = playThrough;
     };
 
     // Loads all HTML elements related to the RTE events
@@ -33,7 +36,7 @@ export class RealTimeEvent {
         // Checks if the enemy's health is depleted
         // If it is below or at 0, it will call the function to clear the rte and halt updating the enemy's remaining health display.
         if (this._enemyHealth <= 0) {
-            this.clearRTE();
+            this.clearRTE(false);
             return;
         };
 
@@ -57,7 +60,7 @@ export class RealTimeEvent {
             this.displayRTE(true, 2);
         } else if (this._currentTrailCrumb === 10) {
             // If the value is equal to 10, calls the function to clear the RTE.
-            this.clearRTE();
+            this.clearRTE(false);
         };
     };
 
@@ -80,7 +83,7 @@ export class RealTimeEvent {
             this.displayRTE(true, 3);
         } else if (this._currentHuntCrumb === this._cookieHuntNum) {
             // If the value is equal to the total cookies in the cookie hunt, calls the function to clear the RTE.
-            this.clearRTE();
+            this.clearRTE(false);
         };
     };
 
@@ -89,13 +92,13 @@ export class RealTimeEvent {
         return this._enemyAlive;
     };
 
-    // Returns the value of the cookieTrailComplete boolean.
-    get cookieTrailComplete() {
-        return this._cookieTrailComplete;
+    // Returns the value of the cookieTrailActive boolean.
+    get cookieTrailActive() {
+        return this._cookieTrailActive;
     };
 
-    // Returns the value of the cookieHuntComplete boolean.
-    get cookieHuntComplete() {
+    // Returns the value of the cookieHuntActive boolean.
+    get cookieHuntActive() {
         return this._cookieHuntActive;
     };
 
@@ -172,8 +175,8 @@ export class RealTimeEvent {
             leftNum += 10;
         };
 
-        // Sets the cookieTrailComplete variable to false.
-        this._cookieTrailComplete = false;
+        // Sets the cookieTrailActive variable to true.
+        this._cookieTrailActive = true;
 
         // Creates a new eventlistener on the first cookie in the cookie trail.
         const crumbEvent = this._cookieTrailList[0].addEventListener('click', this._nextCookieTrailCrumb.bind(this), { once: true });
@@ -213,14 +216,16 @@ export class RealTimeEvent {
         this.displayRTE(true, 1);
     };
 
-    // Clears the any RTE
-    clearRTE() {
+    // Clears the currently active RTE
+    // // The parameter is a boolean that is used to signify if the reset is a manual reset, if it is, then the eventComplete method from the main game is not 
+    // // required to execute
+    clearRTE(value) {
         // Sets the container associated with the RTEs to an empty string.
         this._rteContainer.innerHTML = ``;
 
-        // Sets the cookie trail RTE variables to 0 and true respectively.
+        // Sets the cookie trail RTE variables to 0 and false respectively.
         this._currentTrailCrumb = 0;
-        this._cookieTrailComplete = true;
+        this._cookieTrailActive = false;
 
         // Sets the enemy RTE variables to 0 and false respectively.
         this._enemyHealth = 0;
@@ -233,6 +238,9 @@ export class RealTimeEvent {
 
         // Calls the function to display the current RTE, but passes in a parameter that instead disables it.
         this.displayRTE(false);
+
+        // Checks if this was a manual reset, if it was, then it the eventComplete method will not be executed.
+        value ? '' : this._mainGame.eventComplete();
     };
 
     // Displays information about the currently active RTE or clears the currently active RTE from being displayed.
