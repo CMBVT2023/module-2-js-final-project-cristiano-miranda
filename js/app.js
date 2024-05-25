@@ -4,9 +4,6 @@ import * as rteModule from "./rte.js";
 import * as cookiecrumbModule from "./cookiecrumb.js";
 import * as storageModule from "./storage.js";
 
-// TODO:
-// Add comments to the various methods and properties to explain my logic
-
 class PlayThrough {
   constructor(ui) {
     // Initializes new objects for the game to utilize.
@@ -528,28 +525,196 @@ class GameUI {
     });
   }
 
-  // Resets the game and reinitialize the reset button.
-  _restartGame() {
-    // Calls the function to halt the game from within the PlayThrough object.
-    this._mainGame.haltGame();
+  // // All methods below are associated with the various modals used in the game.
 
-    // After a second, reinitialize the reset button.
-    setTimeout(() => {
-      this._resetBtn.addEventListener(
-        "click",
-        this._restartGame.bind(this, false),
-        { once: true }
+  // Toggles the userSelectionModal and displays all of the users from localStorage.
+  // // The parameter passed in is a boolean that signifies if the command is called from the page loading or if it is called from the end game method.
+  _toggleUserSelectionMenu(value) {
+    // Clears the currently selected users.
+    this._clearCurrentUser();
+
+    // Hides the userCreationModal and the endScreenModal.
+    this._userCreationModal.hide();
+    this._endScreenModal.hide();
+
+    // Loads the default highscore display value via the highscore display method.
+    this._loadHighScore(false);
+
+    // Checks the value of the passed in boolean.
+    if (value) {
+      // If the value is true, which means the method was called from the end game method.
+
+      // Popup a confirm modal to check if the user wants to end the game.
+      let userResult = confirm(
+        "Warning! Changing your user will reset your current game's progress."
       );
-    }, 1000);
+      // Checks the result of the confirm modal.
+      if (userResult) {
+        // If the user confirms,
 
-    // Loads and starts the main game.
-    this._loadPlayThrough();
+        // Calls the function to halt the game from within the PlayThrough object.
+        this._mainGame.haltGame();
+
+        // Calls the function to display all of the users from the users array.
+        this._displayUsers();
+
+        // Displays the userSelectionModal.
+        this._userSelectionModal.show();
+      }
+    } else {
+      // If the value is false, then the method was called on page load.
+
+      // Calls the function to display all of the users from the users array.
+      this._displayUsers();
+
+      // Displays the userSelectionModal.
+      this._userSelectionModal.show();
+    }
   }
 
-  // Capitalizes the first character of any string passed in.
-  // // The parameter passed in is a string that will be capitalized.
-  _capitalizeName(value) {
-    return value[0].toUpperCase() + value.slice(1, value.length);
+  // Toggles the userCreationModal and clears all values from within the inputs.
+  _toggleUserCreationMenu() {
+    // Hides the userSelectionModal.
+    this._userSelectionModal.hide();
+
+    // Clears any value from the userNameTextBox.
+    this._userNameTextBox.value = ``;
+
+    // Displays the userCreationModal.
+    this._userCreationModal.show();
+  }
+
+  // Loads the endScreenModal and all of the necessary information on it.
+  // // The parameter passed in is a number and it is the score the user just achieved during their run.
+  _loadEndScreenModal(outCome) {
+    // Calls the method to store the user's scores in their user object, and stores the boolean value returned by the method in a variable.
+    let newHighScore = this._addUserScore(outCome);
+
+    // Checks if the user playing was a newly created user.
+    if (this._newUser) {
+      // If the user was newly created,
+
+      // Sets the appropriate text for the user within the various endScreenModal displays.
+      // // The mainGame's timer class object is utilized to convert the user's various total time in seconds to a stopwatch display format.
+      this._endScreenMainText.innerText = "Congratulations!";
+      this._endScreenFinalScore.innerText = `Time: ${this._mainGame._timer.convertTime(
+        outCome
+      )}`;
+      this._endScreenHighScoreText.innerText = "New Best Time!";
+      this._endScreenUserScore.innerText = this._mainGame._timer.convertTime(
+        this._currentUser.highestScore
+      );
+      this._endScreenPreviousScoresDisplay.innerHTML = `<p>Play Again to try and beat your time!</p>`;
+
+      // Calls the method to add the newly created user to the user's array in localStorage.
+      storageModule.Storage.addUser(this._currentUser);
+
+      // Sets the newUser boolean to false since the user has now completed a run.
+      this._newUser = false;
+
+      // Resets the active user, true is passed in to signify that the active user was previously a newly created user,
+      // thus their now saved user object would be the last element of the users array in localStorage.
+      this._setActiveUser(true);
+    } else {
+      // If the user was a previously existing user,
+
+      // Checks if the previously existing user achieved a new high score.
+      if (newHighScore) {
+        // If a new high score was achieved,
+
+        // Sets the appropriate text for the user's new achievement in the various endScreenModal displays.
+        this._endScreenMainText.innerText = "Congratulations!";
+        this._endScreenHighScoreText.innerText = "New Best Time!";
+      } else {
+        // If a new highscore was not achieved,
+
+        // Sets the appropriate text for the user's failed run in the various endScreenModal displays.
+        this._endScreenMainText.innerText = "Sorry... Try Again";
+        this._endScreenHighScoreText.innerText = "Highest Score";
+      }
+
+      // Sets the user's acquired time and their highest score time in their appropriate displays.
+      this._endScreenFinalScore.innerText = `Time: ${outCome}`;
+      this._endScreenUserScore.innerText = this._mainGame._timer.convertTime(
+        this._currentUser.highestScore
+      );
+
+      // Loops through the user's past scores array and appends their previous run times to the previous runs display.
+      this._endScreenPreviousScoresDisplay.innerHTML = `<h5>Previous Runs:</h5>`;
+      for (let i = 0; i < this._currentUser.pastScores.length; i++) {
+        this._endScreenPreviousScoresDisplay.innerHTML += `<h6>${this._mainGame._timer.convertTime(
+          this._currentUser.pastScores[i]
+        )}</h6>`;
+      }
+
+      // Calls the method to update the already existing user object in the users array, the newly updated user object and its index in the users array is passed into the method.
+      storageModule.Storage.updateUser(
+        this._currentUser,
+        this._currentUserIndex
+      );
+    }
+
+    // Reloads the user's highscore using the loadHighScore method, true is passed in to show that the method was called after a game was completed.
+    this._loadHighScore(true);
+
+    // Loads the eventListeners for the buttons on the endScreenModal.
+    this._endScreenPlayAgainBtn.addEventListener(
+      "click",
+      this._loadPlayThrough.bind(this),
+      { once: true }
+    );
+    this._endScreenChangeUserBtn.addEventListener(
+      "click",
+      this._toggleUserSelectionMenu.bind(this, false),
+      { once: true }
+    );
+
+    // Displays the endScreenModal.
+    this._endScreenModal.show();
+  }
+
+  // // All methods below relate to setting, finding, or altering the user objects.
+
+  // Clears the current user variables.
+  _clearCurrentUser() {
+    this._currentUser = null;
+    this._currentUserIndex = null;
+    this._newUser = false;
+  }
+
+  // Creates a new user based on the username entered into the userNameTextBox on the userCreationModal
+  _createNewUser() {
+    // Assigns a variable to the text entered within the userNameTextBox, and sets the string within it to be lower case.
+    let userName = this._userNameTextBox.value.toLowerCase();
+
+    // Calls the username capitalization method to ensure that only the starting character is capitalized in the name,
+    // and the string returned is stored in a variable.
+    userName = this._capitalizeName(userName);
+
+    // Checks if the user entered nothing into the textbox.
+    if (userName != "") {
+      // If the user entered a value,
+      // Checks if the user name is already taken.
+      if (this._checkName(userName)) {
+        // If the name is not taken,
+        // Create a new user object and set the currentUser variable equal to it.
+        this._currentUser = new User(userName);
+
+        // Set the newUser boolean to true to show that a new user is being utilized.
+        this._newUser = true;
+
+        // Calls the method to load a new PlayThrough.
+        this._loadPlayThrough();
+      } else {
+        // If the name is already taken, 
+        // Create a confirm popup alerting the user the name is already taken.
+        confirm("User name already taken.");
+      }
+    } else {
+      // If the user entered nothing into the textbox,
+      // Create a confirm popup alerting the user to entered a valid username.
+      confirm("Please Enter a Valid User Name");
+    }
   }
 
   // Displays all of the users in the stored within localStorage in the userSelectionModal.
@@ -576,27 +741,6 @@ class GameUI {
       this._userSelectBtn.style.display = "none";
       this._userDeleteBtn.style.display = "none";
       this._userListGroup.style.display = "none";
-    }
-  }
-
-  // Deletes the selected user from the localStorage.
-  _deleteSelectedUser() {
-    // Initializes all of the radio buttons in a radios variable.
-    let radios = this._userListGroup.querySelectorAll("input");
-
-    // Loops through all of the radio buttons.
-    for (let i = 0; i < radios.length; i++) {
-      // Checks if the radio button is checked.
-      if (radios[i].checked) {
-        // If so, the current user index is set to the loops iteration value.
-        this._currentUserIndex = i;
-        // Calls the method to remove the user from the user array at the specified index.
-        storageModule.Storage.removeUser(this._currentUserIndex);
-        // Calls the method to redisplay the users array.
-        this._displayUsers();
-        // Returns and stops the loop.
-        return;
-      }
     }
   }
 
@@ -633,14 +777,14 @@ class GameUI {
       // If true, the user was a new user and just appended to the end of the array.
       // Sets the current user index value to the last element on the array.
       this._currentUserIndex = userList.length - 1;
-      
+
       // Sets the current user to the user at the end of the array.
       this._currentUser = userList[this._currentUserIndex];
     } else {
       // If false, the user is already an existing user.
       // Resets the current user to the same user from the array.
       this._currentUser = userList[this._currentUserIndex];
-      
+
       // Loads the user's highscore, true is passed in to signify that the user has a previous highscore.
       this._loadHighScore(true);
 
@@ -649,13 +793,76 @@ class GameUI {
     }
   }
 
+  // Deletes the selected user from the localStorage.
+  _deleteSelectedUser() {
+    // Initializes all of the radio buttons in a radios variable.
+    let radios = this._userListGroup.querySelectorAll("input");
+
+    // Loops through all of the radio buttons.
+    for (let i = 0; i < radios.length; i++) {
+      // Checks if the radio button is checked.
+      if (radios[i].checked) {
+        // If so, the current user index is set to the loops iteration value.
+        this._currentUserIndex = i;
+        // Calls the method to remove the user from the user array at the specified index.
+        storageModule.Storage.removeUser(this._currentUserIndex);
+        // Calls the method to redisplay the users array.
+        this._displayUsers();
+        // Returns and stops the loop.
+        return;
+      }
+    }
+  }
+
+  // Inserts a user's new score to their array, and, if necessary, sets their new score as their highest score.
+  // // The parameter passed in is a number and it is the score the user acquired during their run.
+  _addUserScore(score) {
+    // Initializes a new variable that will signal if the user achieved a new highscore.
+    let newHighScore = false;
+
+    // Checks if the user has either no previous highscore or if their new score is better then their previous highscore.
+    if (
+      this._currentUser.highestScore === 0 ||
+      score < this._currentUser.highestScore
+    ) {
+      // If their new score is better or if they had no previous score,
+      // Set the passed in score to their new highest score.
+      this._currentUser.highestScore = score;
+
+      // Set the newHighScore boolean to true.
+      newHighScore = true;
+    }
+
+    // Inserts the passed in score to the front of the user's past scores array.
+    this._currentUser.pastScores.unshift(score);
+
+    // Loops through the user's past score array until the array's length is less than 5.
+    while (this._currentUser.pastScores.length > 5) {
+      // Removes the last element of the past scores array.
+      this._currentUser.pastScores.pop();
+    }
+
+    // Returns the newHighestScore boolean,
+    // It will return true if a new high score is achieved and false if one isn't.
+    return newHighScore;
+  }
+
+
+  // // All methods below relate to displaying and checking the user's various information.
+
+  // Capitalizes the first character of any string passed in.
+  // // The parameter passed in is a string that will be capitalized.
+  _capitalizeName(value) {
+    return value[0].toUpperCase() + value.slice(1, value.length);
+  }
+
   // Loads the user's previous highscore, or if they are a new user, loads a default value.
   // // The parameter is a boolean that signifies if the user is a new user or an already existing user.
   _loadHighScore(value) {
     // Checks the value of the boolean passed in.
     if (value) {
       // If it is true, then the user is an already existing user.
-      
+
       // Loads the user's previous highscore into the highscore display.
       this._currentHighScoreDisplay.innerHTML =
         this._mainGame._timer.convertTime(this._currentUser.highestScore);
@@ -665,6 +872,42 @@ class GameUI {
       // Loads a default value into the highscore display.
       this._currentHighScoreDisplay.innerHTML = `00:00`;
     }
+  }
+
+  // Checks if a username is already taken or occupied by another user.
+  // // The parameter passed in is the username that will be checked.
+  _checkName(name) {
+    // Pulls the user array from localStorage.
+    let userList = storageModule.Storage.getUserList();
+
+    // Loops through the user array.
+    for (let i = 0; i < userList.length; i++) {
+      // Checks if the user at the current index has a matching name to the username passed in.
+      if (userList[i].userName === name) {
+        // If so, return false.
+        return false;
+      }
+    }
+
+    // If no conflicting user is found after looping through the array, return true.
+    return true;
+  }
+
+  // Displays a username in the userNameDisplay element.
+  // // The parameter passed in is a string and it is the user name that will be displayed.
+  _displayUserName(value) {
+    this._userNameDisplay.innerText = value;
+  }
+
+  // // All Methods below relate to start, resetting, or stopping the main game.
+
+  // Method used to end the game.
+  gameOver(value) {
+    // Creates a confirm popup that alerts the user that they have completed the game.
+    confirm("You Win!!!!");
+
+    // Calls the method to load the endScreenModal.
+    this._loadEndScreenModal(value);
   }
 
   // Begins the main game.
@@ -699,192 +942,24 @@ class GameUI {
     this._endScreenModal.hide();
   }
 
-  // Clears the current user variables.
-  _clearCurrentUser() {
-    this._currentUser = null;
-    this._currentUserIndex = null;
-    this._newUser = false;
-  }
+  // Resets the game and reinitialize the reset button.
+  _restartGame() {
+    // Calls the function to halt the game from within the PlayThrough object.
+    this._mainGame.haltGame();
 
-  // Toggles the selectionModal and displays all of the users from localStorage.
-  // // The parameter passed in is a boolean that signifies if the command is called from the page loading or if it is called from the end game method.
-  _toggleUserSelectionMenu(value) {
-    // Clears the currently selected users.
-    this._clearCurrentUser();
-
-    // Hides the userCreationModal and the endScreenModal.
-    this._userCreationModal.hide();
-    this._endScreenModal.hide();
-
-    // Loads the default highscore display value via the highscore display method.
-    this._loadHighScore(false);
-
-    // Checks the value of the passed in boolean.
-    if (value) {
-      // If the value is true, which means the method was called from the end game method.
-
-      // Popup a confirm modal to check if the user wants to end the game.
-      let userResult = confirm(
-        "Warning! Changing your user will reset your current game's progress."
+    // After a second, reinitialize the reset button.
+    setTimeout(() => {
+      this._resetBtn.addEventListener(
+        "click",
+        this._restartGame.bind(this, false),
+        { once: true }
       );
-      // Checks the result of the confirm modal.
-      if (userResult) {
-        // If the user confirms,
+    }, 1000);
 
-        // Calls the function to halt the game from within the PlayThrough object.
-        this._mainGame.haltGame();
-
-        // Calls the function to display all of the users from the users array.
-        this._displayUsers();
-
-        // Displays the userSelectionModal.
-        this._userSelectionModal.show();
-      }
-    } else {
-      // If the value is false, then the method was called on page load.
-      
-      // Calls the function to display all of the users from the users array.
-      this._displayUsers();
-
-      // Displays the userSelectionModal.
-      this._userSelectionModal.show();
-    }
-  }
-
-  // Toggles the userCreationModal and clears all values from within the inputs.
-  _toggleUserCreationMenu() {
-    // Hides the userSelectionModal.
-    this._userSelectionModal.hide();
-
-    // Clears any value from the userNameTextBox.
-    this._userNameTextBox.value = ``;
-
-    // Displays the userCreationModal.
-    this._userCreationModal.show();
-  }
-
-  // Checks if a username is already taken or occupied by another user.
-  // // The parameter passed in is the username that will be checked.
-  _checkName(name) {
-    // Pulls the user array from localStorage.
-    let userList = storageModule.Storage.getUserList();
-
-    // Loops through the user array.
-    for (let i = 0; i < userList.length; i++) {
-      // Checks if the user at the current index has a matching name to the username passed in.
-      if (userList[i].userName === name) {
-        // If so, return false.
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  _createNewUser() {
-    let userName = this._userNameTextBox.value.toLowerCase();
-    userName = this._capitalizeName(userName);
-    if (userName != "") {
-      if (this._checkName(userName)) {
-        this._currentUser = new User(userName);
-        this._newUser = true;
-        this._loadPlayThrough();
-      } else {
-        confirm("User name already taken.");
-      }
-    } else {
-      confirm("Please Enter a Valid User Name");
-    }
-  }
-
-  _displayUserName(value) {
-    this._userNameDisplay.innerText = value;
-  }
-
-  _addUserScore(score) {
-    let newHighScore = false;
-
-    if (
-      this._currentUser.highestScore === 0 ||
-      score < this._currentUser.highestScore
-    ) {
-      this._currentUser.highestScore = score;
-      newHighScore = true;
-    }
-
-    this._currentUser.pastScores.unshift(score);
-    while (this._currentUser.pastScores.length > 5) {
-      this._currentUser.pastScores.pop();
-    }
-
-    return newHighScore;
-  }
-
-  _loadEndScreenModal(outCome) {
-    let newHighScore = this._addUserScore(outCome);
-
-    if (this._newUser) {
-      this._endScreenMainText.innerText = "Congratulations!";
-      this._endScreenFinalScore.innerText = `Time: ${this._mainGame._timer.convertTime(
-        outCome
-      )}`;
-      this._endScreenHighScoreText.innerText = "New Best Time!";
-      this._endScreenUserScore.innerText = this._mainGame._timer.convertTime(
-        this._currentUser.highestScore
-      );
-      this._endScreenPreviousScoresDisplay.innerHTML = `<p>Play Again to try and beat your time!</p>`;
-
-      storageModule.Storage.addUser(this._currentUser);
-      this._newUser = false;
-
-      this._setActiveUser(true);
-    } else {
-      if (newHighScore) {
-        this._endScreenMainText.innerText = "Congratulations!";
-        this._endScreenHighScoreText.innerText = "New Best Time!";
-      } else {
-        this._endScreenMainText.innerText = "Sorry... Try Again";
-        this._endScreenHighScoreText.innerText = "Highest Score";
-      }
-
-      this._endScreenFinalScore.innerText = `Time: ${outCome}`;
-      this._endScreenUserScore.innerText = this._mainGame._timer.convertTime(
-        this._currentUser.highestScore
-      );
-
-      this._endScreenPreviousScoresDisplay.innerHTML = `<h5>Previous Runs:</h5>`;
-      for (let i = 0; i < this._currentUser.pastScores.length; i++) {
-        this._endScreenPreviousScoresDisplay.innerHTML += `<h6>${this._mainGame._timer.convertTime(
-          this._currentUser.pastScores[i]
-        )}</h6>`;
-      }
-
-      storageModule.Storage.updateUser(
-        this._currentUser,
-        this._currentUserIndex
-      );
-    }
-
-    this._loadHighScore(true);
-
-    this._endScreenPlayAgainBtn.addEventListener(
-      "click",
-      this._loadPlayThrough.bind(this),
-      { once: true }
-    );
-    this._endScreenChangeUserBtn.addEventListener(
-      "click",
-      this._toggleUserSelectionMenu.bind(this, false),
-      { once: true }
-    );
-    this._endScreenModal.show();
-  }
-
-  gameOver(value) {
-    confirm("You Win!!!!");
-
-    this._loadEndScreenModal(value);
+    // Loads and starts the main game.
+    this._loadPlayThrough();
   }
 }
 
+// Initializes a new variable that stores a new GameUI object to load the game.
 const Begin = new GameUI();
