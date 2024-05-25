@@ -5,13 +5,7 @@ import * as cookiecrumbModule from "./cookiecrumb.js";
 import * as storageModule from "./storage.js";
 
 // TODO:
-// Add a total play time property and potentially make a previous high scores array, make this keep like 3 scores.
-// Rework the event check and the power up check to call the end power up and end event methods them selves, pass the main game class to them.
-
-// If time allows, add media queries to make the cookies smaller once the screen goes below a certain resolution.
-
-// Alexander recommended that I keep my users are separate key:value pairs in the localStorage.
-// // Look into this one as it might be better optimization wise to store users separately instead of as objects in an array
+// Add comments to the various methods and properties to explain my logic
 
 class PlayThrough {
   constructor(ui) {
@@ -439,32 +433,39 @@ function User(name) {
 
 class GameUI {
   constructor() {
+    // Initializes variables for creating the user.
     this._currentUser;
     this._currentUserIndex;
     this._newUser = false;
 
+    // Calls the methods to load all the html elements and default event listeners.
     this._loadHTMLElements();
     this._loadDefaultEventListeners();
 
+    // Calls the method for the user selection modal.
     this._toggleUserSelectionMenu(false);
 
+    // Loads a new PlayThrough object and passes the GamUI object through to it.
     this._mainGame = new PlayThrough(this);
   }
 
   _loadHTMLElements() {
+    // Loads all elements associated with the user selection modal.
     this._userSelectionModal = bootstrap.Modal.getOrCreateInstance(
       document.getElementById("user-selector-dialog")
     );
     this._createUserBtn = document.getElementById("create-new-user");
-
     this._userListGroup = document.getElementById("user-list");
     this._userSelectBtn = document.getElementById("user-select");
     this._userDeleteBtn = document.getElementById("user-remove");
 
+    // Loads the start container element.
     this._startingContainer = document.getElementById("click-to-start");
 
+    // Loads the current high score display element.
     this._currentHighScoreDisplay = document.getElementById("highest-score");
 
+    // Loads all elements associated with the user creation modal.
     this._userCreationModal = bootstrap.Modal.getOrCreateInstance(
       document.getElementById("username-dialog")
     );
@@ -476,6 +477,7 @@ class GameUI {
     // Element involved with manually resetting the game.
     this._resetBtn = document.getElementById("reset");
 
+    // Loads all elements associated with the endScreenModal.
     this._endScreenModal = bootstrap.Modal.getOrCreateInstance(
       document.getElementById("end-screen-dialog")
     );
@@ -495,6 +497,7 @@ class GameUI {
   }
 
   _loadDefaultEventListeners() {
+    // Event listeners associated with the user selection menu.
     this._createUserBtn.addEventListener(
       "click",
       this._toggleUserCreationMenu.bind(this)
@@ -508,6 +511,7 @@ class GameUI {
       this._deleteSelectedUser.bind(this)
     );
 
+    // Event listeners associated with the user creation menu.
     this._userNameBtn.addEventListener("click", this._createNewUser.bind(this));
     this._userNameDisplay.addEventListener(
       "click",
@@ -524,9 +528,12 @@ class GameUI {
     });
   }
 
+  // Resets the game and reinitialize the reset button.
   _restartGame() {
+    // Calls the function to halt the game from within the PlayThrough object.
     this._mainGame.haltGame();
 
+    // After a second, reinitialize the reset button.
     setTimeout(() => {
       this._resetBtn.addEventListener(
         "click",
@@ -535,143 +542,238 @@ class GameUI {
       );
     }, 1000);
 
+    // Loads and starts the main game.
     this._loadPlayThrough();
   }
 
+  // Capitalizes the first character of any string passed in.
+  // // The parameter passed in is a string that will be capitalized.
   _capitalizeName(value) {
     return value[0].toUpperCase() + value.slice(1, value.length);
   }
 
+  // Displays all of the users in the stored within localStorage in the userSelectionModal.
   _displayUsers() {
+    // Pulls the user array from localStorage.
     let userList = storageModule.Storage.getUserList();
 
+    // Clears the users list group.
     this._userListGroup.innerHTML = ``;
 
+    // Checks if the user array is empty or populated.
     if (userList.length !== 0) {
+      // If the array is populated, display the user list element.
       this._userListGroup.style.display = "block";
       this._userSelectBtn.style.display = "block";
       this._userDeleteBtn.style.display = "block";
+
+      // Loops through and display all users within the user array.
       for (let i in userList) {
         this._userListGroup.innerHTML += `<label class="list-group-item fw-bold bg-transparent bg-gradient user-list-item"><input type="radio" name="user"> ${userList[i].userName}</label>`;
       }
     } else {
+      // If the array is not populated, hide all the user list elements.
       this._userSelectBtn.style.display = "none";
       this._userDeleteBtn.style.display = "none";
       this._userListGroup.style.display = "none";
     }
   }
 
+  // Deletes the selected user from the localStorage.
   _deleteSelectedUser() {
+    // Initializes all of the radio buttons in a radios variable.
     let radios = this._userListGroup.querySelectorAll("input");
 
+    // Loops through all of the radio buttons.
     for (let i = 0; i < radios.length; i++) {
+      // Checks if the radio button is checked.
       if (radios[i].checked) {
+        // If so, the current user index is set to the loops iteration value.
         this._currentUserIndex = i;
+        // Calls the method to remove the user from the user array at the specified index.
         storageModule.Storage.removeUser(this._currentUserIndex);
+        // Calls the method to redisplay the users array.
         this._displayUsers();
+        // Returns and stops the loop.
         return;
       }
     }
   }
 
+  // Finds the selected user from the user selection list and sets them as the active user.
   _findSelectedUser() {
+    // Initializes all of the radio buttons in a radios variable.
     let radios = this._userListGroup.querySelectorAll("input");
 
+    // Loops through all of the radio buttons.
     for (let i = 0; i < radios.length; i++) {
+      // Checks if the radio button is checked.
       if (radios[i].checked) {
+        // If so, the current user index is set to the loops iteration value.
         this._currentUserIndex = i;
+        // Sets the current active user to the user at the specified index.
         this._setActiveUser(false);
+        // Returns and stops the loop.
         return;
       }
     }
 
+    // If no user is selected, then popup a confirm modal to alert the user.
     confirm("Please select a user.");
   }
 
+  // Sets the currently active user.
+  // // The parameter is a boolean value that determines if the user is a new user or a already existing user.
   _setActiveUser(value) {
+    // Pulls the user array from localStorage.
     let userList = storageModule.Storage.getUserList();
 
+    // Checks if the passed in boolean is true or false, true being it is a new user and false being a already existing user.
     if (value) {
+      // If true, the user was a new user and just appended to the end of the array.
+      // Sets the current user index value to the last element on the array.
       this._currentUserIndex = userList.length - 1;
+      
+      // Sets the current user to the user at the end of the array.
       this._currentUser = userList[this._currentUserIndex];
     } else {
+      // If false, the user is already an existing user.
+      // Resets the current user to the same user from the array.
       this._currentUser = userList[this._currentUserIndex];
+      
+      // Loads the user's highscore, true is passed in to signify that the user has a previous highscore.
       this._loadHighScore(true);
+
+      // Calls the function to load the main game.
       this._loadPlayThrough();
     }
   }
 
+  // Loads the user's previous highscore, or if they are a new user, loads a default value.
+  // // The parameter is a boolean that signifies if the user is a new user or an already existing user.
   _loadHighScore(value) {
+    // Checks the value of the boolean passed in.
     if (value) {
+      // If it is true, then the user is an already existing user.
+      
+      // Loads the user's previous highscore into the highscore display.
       this._currentHighScoreDisplay.innerHTML =
         this._mainGame._timer.convertTime(this._currentUser.highestScore);
     } else {
+      // If it is false, then it is a new user.
+
+      // Loads a default value into the highscore display.
       this._currentHighScoreDisplay.innerHTML = `00:00`;
     }
   }
 
+  // Begins the main game.
   _beginPlayThrough() {
+    // Sets the starting container to hidden and removes the "click to start" child element from the container.
     this._startingContainer.style.visibility = "hidden";
     this._startingContainer.lastChild.remove();
 
+    // Calls the function to start the main game from within the PlayThrough object.
     this._mainGame.startGame();
   }
 
+  // Loads the elements necessary to begin the game.
   _loadPlayThrough() {
+    // Sets the starting container to visible and appends a new child element to the container that contains "click to start".
     this._startingContainer.style.visibility = "visible";
     this._startingContainer.innerHTML = `<h1>Click To Start</h1>`;
 
+    // Adds an event listener to the "click to start" text that will call the game start method.
     this._startingContainer.lastChild.addEventListener(
       "click",
       this._beginPlayThrough.bind(this),
       { once: true }
     );
 
+    // Displays the current user's username in the username display.
     this._displayUserName(this._currentUser.userName);
 
+    // Hides all modals from the screen.
     this._userSelectionModal.hide();
     this._userCreationModal.hide();
     this._endScreenModal.hide();
   }
 
+  // Clears the current user variables.
   _clearCurrentUser() {
     this._currentUser = null;
     this._currentUserIndex = null;
     this._newUser = false;
   }
 
+  // Toggles the selectionModal and displays all of the users from localStorage.
+  // // The parameter passed in is a boolean that signifies if the command is called from the page loading or if it is called from the end game method.
   _toggleUserSelectionMenu(value) {
+    // Clears the currently selected users.
     this._clearCurrentUser();
+
+    // Hides the userCreationModal and the endScreenModal.
     this._userCreationModal.hide();
     this._endScreenModal.hide();
+
+    // Loads the default highscore display value via the highscore display method.
     this._loadHighScore(false);
 
+    // Checks the value of the passed in boolean.
     if (value) {
+      // If the value is true, which means the method was called from the end game method.
+
+      // Popup a confirm modal to check if the user wants to end the game.
       let userResult = confirm(
         "Warning! Changing your user will reset your current game's progress."
       );
+      // Checks the result of the confirm modal.
       if (userResult) {
+        // If the user confirms,
+
+        // Calls the function to halt the game from within the PlayThrough object.
         this._mainGame.haltGame();
+
+        // Calls the function to display all of the users from the users array.
         this._displayUsers();
+
+        // Displays the userSelectionModal.
         this._userSelectionModal.show();
       }
     } else {
+      // If the value is false, then the method was called on page load.
+      
+      // Calls the function to display all of the users from the users array.
       this._displayUsers();
+
+      // Displays the userSelectionModal.
       this._userSelectionModal.show();
     }
   }
 
-  _toggleUserCreationMenu(value) {
+  // Toggles the userCreationModal and clears all values from within the inputs.
+  _toggleUserCreationMenu() {
+    // Hides the userSelectionModal.
     this._userSelectionModal.hide();
+
+    // Clears any value from the userNameTextBox.
     this._userNameTextBox.value = ``;
+
+    // Displays the userCreationModal.
     this._userCreationModal.show();
   }
 
+  // Checks if a username is already taken or occupied by another user.
+  // // The parameter passed in is the username that will be checked.
   _checkName(name) {
+    // Pulls the user array from localStorage.
     let userList = storageModule.Storage.getUserList();
 
+    // Loops through the user array.
     for (let i = 0; i < userList.length; i++) {
+      // Checks if the user at the current index has a matching name to the username passed in.
       if (userList[i].userName === name) {
+        // If so, return false.
         return false;
       }
     }
